@@ -192,8 +192,8 @@ finalize_backup() {
   echo "Teraz mozes pocitac bezpecne vypnut"
   echo
   
-  read -r -p "Stlacte lubovolnu klavesu na zatvorenie okna..."
-  echo
+  printf "Stlacte lubovolnu klavesu na zatvorenie okna..."
+  read -r
 }
 
 main() {
