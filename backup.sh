@@ -97,7 +97,7 @@ estimate_backup_size() {
   cat --squeeze-blank backup.conf | grep -v '^[[:space:]]*$' | tail -n +2 | xargs -I "{}" sh -c "du --summarize "{}" 2>/dev/null | tr '\t' '#' | cut -d'#' -f1 >> "${LOG_DIR}/backup_entries_size.log""
   
   arithmetic_expression="$(paste --serial --delimiters=+ "${LOG_DIR}/backup_entries_size.log")"
-  ESTIMATED_BACKUP_SIZE_IN_KB="$(($arithmetic_expression))"
+  ESTIMATED_BACKUP_SIZE_IN_KB="$((arithmetic_expression))"
 
   kill $ANIMATION_PID
   wait $ANIMATION_PID 2>/dev/null
@@ -192,7 +192,7 @@ finalize_backup() {
   echo "Teraz mozes pocitac bezpecne vypnut"
   echo
   
-  read -rsn1 -p "Stlacte lubovolnu klavesu na zatvorenie okna..."
+  read -rn1 -p "Stlacte lubovolnu klavesu na zatvorenie okna..."
   echo
 }
 
