@@ -52,3 +52,17 @@ https://github.com/shivansh/TCP-IP-Regression-TestSuite/commit/8f1fb4c4f5a96b160
 - https://duckduckgo.com/?q=concatenate+files+by+columns+bash&ia=web
 - https://duckduckgo.com/?q=cut+by+tab+linux&ia=web
 - https://www.ibm.com/docs/en/zos/2.2.0?topic=descriptions-xargs-construct-argument-list-run-command
+- https://duckduckgo.com/?q=xargs+pipe&ia=web&iax=qa
+- https://unix.stackexchange.com/questions/209249/piping-commands-after-a-piped-xargs#209250
+- https://duckduckgo.com/?q=bash+sum+number&ia=web
+- https://stackoverflow.com/questions/3096259/bash-command-to-sum-a-column-of-numbers#3096575
+- https://duckduckgo.com/?q=concatenate+files+by+columns+bash&ia=web
+- https://stackoverflow.com/questions/11160145/merge-two-files-in-linux-with-different-column#11160289
+- https://duckduckgo.com/?q=cut+by+tab+linux&ia=web
+- https://unix.stackexchange.com/questions/35369/how-to-define-tab-delimiter-with-cut-in-bash#35370
+- https://duckduckgo.com/?q=iterate+two+files+bash&ia=web&iax=qa
+- https://stackoverflow.com/questions/18909957/how-to-use-bash-script-to-loop-through-two-files#18910011
+- https://stackoverflow.com/questions/27601143/replace-shortest-string-match-in-bash
+- https://unix.stackexchange.com/questions/144298/delete-the-last-character-of-a-string-using-string-manipulation-in-shell-script/144308#144308
+- https://askubuntu.com/questions/743493/best-way-to-read-a-config-file-in-bash
+- https://stackoverflow.com/questions/39552070/how-to-copy-contents-in-a-directory-to-my-current-directory-in-shell/39552096#39552096

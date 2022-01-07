@@ -1,10 +1,12 @@
+#!/bin/sh
+
 SCRIPT_DIR="$(dirname "$(readlink --canonicalize "$0")")"
 
 ANIMATION_PID=0
 
 wait_for_cleanmgr_to_finish() {
 # wait to make sure the clean manager had enough time to start and open and is really running
-  sleep 5
+  sleep 15
   
   while true
   do
@@ -19,7 +21,7 @@ wait_for_cleanmgr_to_finish() {
   kill $ANIMATION_PID
   wait $ANIMATION_PID 2>/dev/null
   
-  local message="$1"
+  message="$1"
   echo "$message"
 }
 
