@@ -43,7 +43,7 @@ show_info_message() {
 clean_temp_files() {
   mkdir --parents "${LOG_DIR}"
 
-  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Cleanup - Start Time" >> "${LOG_FILE}"
+  echo "${DATE_AND_TIME_FOR_LOG_ENTRIES}:$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Cleanup - Start Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
   
   echo "¤ Clearing temporary files"
@@ -78,12 +78,12 @@ clean_backup_directory() {
   wait $ANIMATION_PID 2>/dev/null
   
   echo >> "${LOG_FILE}"
-  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Cleanup - End Time" >> "${LOG_FILE}"
+  echo "${DATE_AND_TIME_FOR_LOG_ENTRIES}:$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Cleanup - End Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
 }
 
 estimate_backup_size() {
-  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimate Backup Time - Start Time" >> "${LOG_FILE}"
+  echo "${DATE_AND_TIME_FOR_LOG_ENTRIES}:$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimate Backup Time - Start Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
 
   echo "¤ Estimating backup size"
@@ -106,7 +106,7 @@ estimate_backup_size() {
   echo "  Estimated backup size: $ESTIMATED_BACKUP_SIZE_IN_KB" KB
   echo
   
-  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimate Backup Time - End Time" >> "${LOG_FILE}"
+  echo "${DATE_AND_TIME_FOR_LOG_ENTRIES}:$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimate Backup Time - End Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
 }
 
@@ -122,7 +122,7 @@ copy_file() {
 }
 
 backup_files_and_folders() {
-  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - Start Time" >> "${LOG_FILE}"
+  echo "${DATE_AND_TIME_FOR_LOG_ENTRIES}:$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Preparation for Backup of Files And Folders - Start Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
 
   echo "¤ Backing up files"
@@ -147,8 +147,11 @@ backup_files_and_folders() {
   "${SCRIPT_DIR}"/utils/busy-animation.sh "$ESTIMATED_BACKUP_SIZE_IN_KB" &
   ANIMATION_PID="$!"
   
+  echo "${DATE_AND_TIME_FOR_LOG_ENTRIES}:$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Preparation for Backup of Files And Folders - End Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
-  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - Start Time" >> "${LOG_FILE}"
+
+  echo >> "${LOG_FILE}"
+  echo "${DATE_AND_TIME_FOR_LOG_ENTRIES}:$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - Start Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
   
   for dir_index in ${!DIRECTORIES_FOR_BACKUP[@]}
@@ -172,7 +175,7 @@ backup_files_and_folders() {
   kill $ANIMATION_PID 2>/dev/null
   wait $ANIMATION_PID 2>/dev/null
   
-  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - End Time" >> "${LOG_FILE}"
+  echo "${DATE_AND_TIME_FOR_LOG_ENTRIES}:$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - End Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
 }
 
@@ -184,7 +187,7 @@ finalize_backup() {
   echo
   
   echo >> "${LOG_FILE}"
-  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Finish - End Time" >> "${LOG_FILE}"
+  echo "${DATE_AND_TIME_FOR_LOG_ENTRIES}:$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Finish - End Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
   
   echo "Teraz mozes pocitac bezpecne vypnut"
@@ -205,3 +208,4 @@ main() {
 }
 
 main
+
