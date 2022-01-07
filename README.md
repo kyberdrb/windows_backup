@@ -46,3 +46,9 @@ Script operations
 - Execute Bash Script (Using Git Bash) from Windows Task Scheduler
  - https://gist.github.com/damc-dev/eb5e1aef001eef78c0f4
 - https://stackoverflow.com/questions/3432555/remove-blank-lines-with-grep
+https://github.com/shivansh/TCP-IP-Regression-TestSuite/commit/8f1fb4c4f5a96b1605f72f3fc109ec93ae188929
+- https://duckduckgo.com/?q=xargs+pipe&ia=web&iax=qa
+- https://duckduckgo.com/?q=bash+sum+number&ia=web
+- https://duckduckgo.com/?q=concatenate+files+by+columns+bash&ia=web
+- https://duckduckgo.com/?q=cut+by+tab+linux&ia=web
+- https://www.ibm.com/docs/en/zos/2.2.0?topic=descriptions-xargs-construct-argument-list-run-command
