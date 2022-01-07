@@ -60,11 +60,10 @@ clean_backup_directory() {
 
   for dir_index in ${!DIRECTORIES_FOR_BACKUP[@]}
   do
-    #TODO remove 'local' keyword from the entire script because it doesn't conform to the POSIX standard - using small letters for local variables instead
-    local directory_for_deletion="${DIRECTORIES_FOR_BACKUP[$dir_index]}"
-    local path_for_deletion="${BACKUP_FOLDER}"
-    local source_drive="/$(echo "$directory_for_deletion" | cut -d'/' -f2)"
-    local directory_for_deletion_without_drive_name=$(echo ${directory_for_deletion#$source_drive})
+    directory_for_deletion="${DIRECTORIES_FOR_BACKUP[$dir_index]}"
+    path_for_deletion="${BACKUP_FOLDER}"
+    source_drive="/$(echo "$directory_for_deletion" | cut -d'/' -f2)"
+    directory_for_deletion_without_drive_name=$(echo ${directory_for_deletion#$source_drive})
     path_for_deletion+="${directory_for_deletion_without_drive_name}"
     
     rm -vrf "${path_for_deletion}" >> "${LOG_FILE}" 2>&1
@@ -131,15 +130,15 @@ backup_files_and_folders() {
   echo "Prosim, nechaj pocitac zapnuty, zalohuju sa subory"
   echo
   
-  local forelast_backup_log_filename=$(ls -c1 "${LOG_DIR}/" | head -n 2 | tail -n 1)
-  local forelast_backup_log="${LOG_DIR}/${forelast_backup_log_filename}"
-  local start_timestamp=$(head -n 1 "${forelast_backup_log}" | cut -d ':' -f1)
-  local end_timestamp=$(tail -n 2 "${forelast_backup_log}" | cut -d ':' -f1 | tr -d '\n')
-  local duration_of_last_backup_in_seconds=$(( end_timestamp - start_timestamp ))
-  local duration_of_last_backup_in_seconds_in_human_readable_format=$(date -d@${duration_of_last_backup_in_seconds} -u "+%-k hod. %M minut")
+  forelast_backup_log_filename=$(ls -c1 "${LOG_DIR}/" | head -n 2 | tail -n 1)
+  forelast_backup_log="${LOG_DIR}/${forelast_backup_log_filename}"
+  start_timestamp=$(head -n 1 "${forelast_backup_log}" | cut -d ':' -f1)
+  end_timestamp=$(tail -n 2 "${forelast_backup_log}" | cut -d ':' -f1 | tr -d '\n')
+  duration_of_last_backup_in_seconds=$(( end_timestamp - start_timestamp ))
+  duration_of_last_backup_in_seconds_in_human_readable_format=$(date -d@${duration_of_last_backup_in_seconds} -u "+%-k hod. %M minut")
   echo "Posledna zaloha trvala ${duration_of_last_backup_in_seconds_in_human_readable_format}"
   
-  local estimated_backup_finish_time=$(date -d "${duration_of_last_backup_in_seconds} seconds" +"%H:%M")
+  estimated_backup_finish_time=$(date -d "${duration_of_last_backup_in_seconds} seconds" +"%H:%M")
   echo "Zalohovanie bude trvat priblizne do ${estimated_backup_finish_time}"
   echo
   
@@ -156,10 +155,10 @@ backup_files_and_folders() {
   
   for dir_index in ${!DIRECTORIES_FOR_BACKUP[@]}
   do
-    local directory_for_backup="${DIRECTORIES_FOR_BACKUP[$dir_index]}"
-    local backup_path="${BACKUP_FOLDER}"
-    local source_drive="/$(echo "$directory_for_backup" | cut -d'/' -f2)"
-    local directory_for_backup_without_drive_name=$(echo ${directory_for_backup#$source_drive})
+    directory_for_backup="${DIRECTORIES_FOR_BACKUP[$dir_index]}"
+    backup_path="${BACKUP_FOLDER}"
+    source_drive="/$(echo "$directory_for_backup" | cut -d'/' -f2)"
+    directory_for_backup_without_drive_name=$(echo ${directory_for_backup#$source_drive})
     backup_path+="${directory_for_backup_without_drive_name}"
     
     copy_file "${directory_for_backup}" "${backup_path}" >> "${LOG_FILE}" 2>&1
