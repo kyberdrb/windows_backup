@@ -16,7 +16,10 @@ CONTINUE_EXECUTION_OF_SCRIPT="true"
 
 # For usual script termination
 handle_default_kill() {
-  CONTINUE_EXECUTION_OF_SCRIPT="false"
+  clear_current_line
+      
+  clean_termination=0
+  exit ${clean_termination}
 }
 
 # For standalone script testing
@@ -24,84 +27,56 @@ handle_Ctrl_C_interrupt() {
   handle_default_kill
 }
 
-clear_current_line() {
-  progress_message=""
+clear_current_line() {  
   terminal_width=$( stty --file=/dev/tty size | cut -d' ' -f2 2>/dev/null)
   
-  # to avoid newline at last character in order to fit terminal width
-  #  and make only one blank line
-  reduced_terminal_width=$(( terminal_width - 1 ))
-  # clear last line of backup progress
-  for i in $(seq ${reduced_terminal_width})
+  starting_character_number=1
+  current_character_number=$starting_character_number
+  while [ $current_character_number -le $terminal_width ]
   do
-    progress_message+=" "
+    printf " "
+    current_character_number=$(( current_character_number + 1 ))
   done
-  
-  echo "${progress_message}"
 }
 
-main() {
-  animation_steps=(
-    "-"
-    "\\"
-    "|"
-    "/"
-  )
+main() { 
+  animation_steps="-:\:|:/"
 
-  step_index=0
-  number_of_steps=${#animation_steps[@]}
+  first_step_index=0
+  index_of_next_step=$first_step_index
+  number_of_steps=4
+  
   while true
   do
     progress_message=""
+    
+    index_of_next_step=$((1 + index_of_next_step % $number_of_steps))
+    
+    animation_step="$(printf -- "$animation_steps" | cut -d ':' -f $((index_of_next_step)))    "
 
     if [ -n "${ESTIMATED_BACKUP_SIZE_IN_KB}" ]
     then
-      # Because we're doing the beckup on a clean drive, we can use 'df' utility
+      # I'm doing the beckup on a clean drive, therefore I use 'df' utility
       current_amount_of_backed_up_data_in_kb=$(df | grep D: | tr -s ' ' | cut -d ' ' -f3)
 
       percent_completed=$(( current_amount_of_backed_up_data_in_kb * 100 / ESTIMATED_BACKUP_SIZE_IN_KB ))
-      progress_message+="${percent_completed}% completed    "
-      progress_message+="$current_amount_of_backed_up_data_in_kb/$ESTIMATED_BACKUP_SIZE_IN_KB    "
+      percent_completed_message="${percent_completed}%% completed    "
+      amount_of_backed_up_data="$current_amount_of_backed_up_data_in_kb/$ESTIMATED_BACKUP_SIZE_IN_KB    "
       
       if [ "${CONTINUE_EXECUTION_OF_SCRIPT}" = "false" ]
       then
         progress_message="$(clear_current_line)"
         
-        echo -ne "${progress_message} \r"
+        printf -- "${progress_message} \r"
         
         clean_termination=0
         exit ${clean_termination}
       fi
-      
-      echo -ne "${progress_message} \r"
-      
-      continue
-    fi
-
-    progress_message+="${animation_steps[step_index]}    "
-
-    if [ "${CONTINUE_EXECUTION_OF_SCRIPT}" = "false" ]
-    then
-      progress_message="$(clear_current_line)"
-      
-      echo -ne "${progress_message} \r"
-      
-      clean_termination=0
-      exit ${clean_termination}
     fi
     
-    echo -ne "${progress_message} \r"
+    progress_message="${animation_step}${percent_completed_message}${amount_of_backed_up_data}"
     
-    index_of_next_step=$((step_index + 1))
-    step_index=${index_of_next_step}
-    
-    test $step_index -eq $number_of_steps
-    is_on_the_last_animation_step=$?
-    if [ ${is_on_the_last_animation_step} -eq 0 ]
-    then
-      index_of_first_step=0
-      step_index=${index_of_first_step}
-    fi
+    printf -- "${progress_message} \r"
     
     delay=0.07
     sleep $delay
