@@ -23,6 +23,18 @@ TODO add guide how to add a new backup task in `Task Scheduler` in Windows
 
 - as current user - without elevated priviledges - priviledges will be requested at runtime
 
+## Syncing between computers
+
+        rm -rf "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)"
+        mkdir "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)"
+        find . -name *.txt | grep -v ".*\.git\>" | xargs chmod -x
+        find . -name *.log | grep -v ".*\.git\>" | xargs chmod -x
+        find . -name *.tmp | grep -v ".*\.git\>" | xargs chmod -x
+        find . -name *.ini | grep -v ".*\.git\>" | xargs chmod -x
+        find . -name *.md | grep -v ".*\.git\>" | xargs chmod -x
+        chmod -x .gitignore
+        rsync --archive --verbose --progress "." "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)" --exclude ".git" --dry-run
+
 ## Sources - Task Scheduler
 
 - https://www.windowstricks.in/2018/08/how-to-run-the-powershell-script-in-scheduled-task-with-run-as-administrator.html
