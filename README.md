@@ -27,13 +27,21 @@ TODO add guide how to add a new backup task in `Task Scheduler` in Windows
 
         rm -rf "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)"
         mkdir "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)"
+
+        # TODO pre-push routine - copying to/from NTFS`<->`ext4 filesystems changes executable permissions
         find . -name *.txt | grep -v ".*\.git\>" | xargs chmod -x
         find . -name *.log | grep -v ".*\.git\>" | xargs chmod -x
         find . -name *.tmp | grep -v ".*\.git\>" | xargs chmod -x
         find . -name *.ini | grep -v ".*\.git\>" | xargs chmod -x
         find . -name *.md | grep -v ".*\.git\>" | xargs chmod -x
         chmod -x .gitignore
+        # end of pre-push routine
+
         rsync --archive --verbose --progress "." "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)" --exclude ".git" --dry-run
+
+Or one-liner
+
+        rm -rf "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)" && mkdir "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)" && rsync --archive --verbose --progress "." "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)" --exclude ".git"
 
 ## Sources - Task Scheduler
 
@@ -100,4 +108,6 @@ https://github.com/shivansh/TCP-IP-Regression-TestSuite/commit/8f1fb4c4f5a96b160
 - https://www.cyberciti.biz/faq/linux-redirect-error-output-to-file/
 - https://unix.stackexchange.com/questions/32180/testing-if-a-variable-is-empty-in-a-shell-script
 - https://pubs.opengroup.org/onlinepubs/009695399/utilities/test.html#tag_04_140_05
+- https://duckduckgo.com/?q=directory+name+posix+shell&ia=web
+- https://stackoverflow.com/questions/4585929/how-to-use-cp-command-to-exclude-a-specific-directory/14789400#14789400
 
