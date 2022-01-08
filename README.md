@@ -2,17 +2,12 @@
 
 Add this tutorial to my repo "Windows_tutorials"
 
-## Cloning
-
-1. Open Git Bash
-1. Run backup script by executing
-
-        git clone 
-        cd windows_backup
-        
 ## Usage
 
-        ./backup
+        cd /path/to/repository/
+        ./backup.sh
+
+The rest will handle the script with the configuration file.
 
 ## Script description
 
@@ -24,8 +19,9 @@ Script operations
 
 ## Task scheduling
 
-- with opened powershell window
-- as current user
+TODO add guide how to add a new backup task in `Task Scheduler` in Windows
+
+- as current user - without elevated priviledges - priviledges will be requested at runtime
 
 ## Sources - Task Scheduler
 
@@ -90,3 +86,6 @@ https://github.com/shivansh/TCP-IP-Regression-TestSuite/commit/8f1fb4c4f5a96b160
 - https://duckduckgo.com/?q=redirect+error+output+to+stdout+and+append+to+file&ia=web
 - https://stackoverflow.com/questions/876239/how-to-redirect-and-append-both-standard-output-and-standard-error-to-a-file-wit#876242
 - https://www.cyberciti.biz/faq/linux-redirect-error-output-to-file/
+- https://unix.stackexchange.com/questions/32180/testing-if-a-variable-is-empty-in-a-shell-script
+- https://pubs.opengroup.org/onlinepubs/009695399/utilities/test.html#tag_04_140_05
+
