@@ -37,7 +37,7 @@ clean_temp_files() {
   rm --verbose --recursive --force "${TMP_DIR}" >> "${LOG_FILE}" 2>&1
   mkdir --parents "${TMP_DIR}" >> "${LOG_FILE}" 2>&1
   
-  echo "¤ Clearing temporary files"
+  printf "¤ Clearing temporary files\n"
  
   # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
   "${SCRIPT_DIR}/utils/windows_cleaner/windows_cleaner-clean.sh"
@@ -83,7 +83,7 @@ estimate_backup_size() {
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimate Backup Time - Start Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
 
-  echo "¤ Estimating backup size"
+  printf "¤ Estimating backup size\n"
   
   "${SCRIPT_DIR}"/utils/busy-animation.sh &
   ANIMATION_PID="$!"
@@ -113,8 +113,7 @@ backup_files_and_folders() {
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Preparation for Backup of Files And Folders - Start Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
 
-  echo "¤ Backing up files"
-  echo
+  printf "¤ Backing up files\n"
   
   echo "Prosim, nechaj pocitac zapnuty, zalohuju sa subory"
   echo
@@ -170,8 +169,7 @@ finalize_backup() {
   kill $SHUTDOWNGUARD_PID 2>/dev/null
   wait $SHUTDOWNGUARD_PID 2>/dev/null
 
-  echo "¤ Backup complete"
-  echo
+  printf "¤ Backup complete\n"
   
   echo >> "${LOG_FILE}"
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Finish - End Time" >> "${LOG_FILE}"
@@ -183,6 +181,8 @@ finalize_backup() {
   read -r
 }
 
+# TODO extract trap kill handling and use it in all scripts
+#  maybe source the trap kill handling script to avoid duplicates?
 trap handle_default_kill TERM
 trap handle_Ctrl_C_interrupt INT
 

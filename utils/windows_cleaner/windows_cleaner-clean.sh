@@ -1,5 +1,7 @@
 #!/bin/sh
 
+#set -x
+
 SCRIPT_DIR="$(dirname "$(readlink --canonicalize "$0")")"
 
 ANIMATION_PID=0
@@ -7,28 +9,31 @@ ANIMATION_PID=0
 CLEAN_MANAGER_INVOKED=1
 
 wait_for_cleanmgr_to_finish() {
-  # wait to make sure the clean manager had enough time to start and open and is really running
-  sleep 15
-  
+  # wait for the clean manager to start and open to make sure is really running
+  #  before doing anything else, to make sure only one instance of cleanmkgr is running
+  #  for performance reasons
   while true
   do
-    if [ $CLEAN_MANAGER_INVOKED -eq 1 ] && [ -z "$(tasklist | findstr "cleanmgr")" ]
+    # THIS COMMAND CAN BE TIME-CONSUMING OR BLOCKING.
+    #  Comment out the entire 'if' block below for faster debugging/execution
+    if [ "$CLEAN_MANAGER_INVOKED" -eq "1" ] && [ -z "$(tasklist | findstr "cleanmgr")" ]
     then
-      printf "$(date +%s): Waiting for cleanmgr.exe to start...\r"
+      printf "      $(date +%s): Waiting for cleanmgr.exe to start...\r"
       continue
     fi
     
-    printf "cleanmgr.exe started.\r"
-    
-    # TODO extract function and use it in busy-animation.sh too
+    # TODO extract function to script and use it here and in busy-animation.sh too
     # clear line - beginning of function
     starting_character_number=1
     current_character_number=$starting_character_number
-    while [ $current_character_number -le $terminal_width ]
+    terminal_width=$( stty --file=/dev/tty size | cut -d' ' -f2 2>/dev/null)
+    while [ "$current_character_number" -lt "$terminal_width" ]
     do
       printf " "
       current_character_number=$(( current_character_number + 1 ))
     done
+    
+    printf "\r"
     # clear line - end of function
     
     break
@@ -50,13 +55,14 @@ wait_for_cleanmgr_to_finish() {
   CLEAN_MANAGER_INVOKED=0
   
   message="$1"
-  echo "$message"
+  printf "$message\n"
 }
 
 clean_systemspace() {
   "${SCRIPT_DIR}"/../busy-animation.sh &
   ANIMATION_PID="$!"
 
+  # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
   gsudo cleanmgr /SAGERUN:0
   
   wait_for_cleanmgr_to_finish "  • systemspace cleaning done"
@@ -66,11 +72,11 @@ clean_userspace() {
   "${SCRIPT_DIR}"/../busy-animation.sh &
   ANIMATION_PID="$!"
   
+  # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
   cleanmgr /SAGERUN:0
   
   wait_for_cleanmgr_to_finish "  • userspace cleaning done"
 }
-
 
 main() {
   clean_systemspace

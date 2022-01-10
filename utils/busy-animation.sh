@@ -28,15 +28,16 @@ handle_Ctrl_C_interrupt() {
 }
 
 clear_current_line() {  
-  terminal_width=$( stty --file=/dev/tty size | cut -d' ' -f2 2>/dev/null)
-  
   starting_character_number=1
   current_character_number=$starting_character_number
-  while [ $current_character_number -le $terminal_width ]
+  terminal_width=$( stty --file=/dev/tty size | cut -d' ' -f2 2>/dev/null)
+  while [ $current_character_number -lt $terminal_width ]
   do
     printf " "
     current_character_number=$(( current_character_number + 1 ))
   done
+  
+  printf "\r"
 }
 
 main() { 

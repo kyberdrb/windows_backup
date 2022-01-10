@@ -28,7 +28,7 @@ TODO add guide how to add a new backup task in `Task Scheduler` in Windows
         rm -rf "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)"
         mkdir "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)"
 
-        # TODO pre-push routine - copying to/from NTFS`<->`ext4 filesystems changes executable permissions
+        # TODO pre-commit/pre-add? routine - copying to/from NTFS`<->`ext4 filesystems changes executable permissions
         find . -name *.txt | grep -v ".*\.git\>" | xargs chmod -x
         find . -name *.log | grep -v ".*\.git\>" | xargs chmod -x
         find . -name *.tmp | grep -v ".*\.git\>" | xargs chmod -x
