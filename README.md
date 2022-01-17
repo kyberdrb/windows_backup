@@ -13,15 +13,43 @@ The rest will handle the script with the configuration file.
 
 Script operations
 
-1. Format backup drive
-1. Backup folders
+1. Clean backup folers listed in configuration
+1. Clean up Windows
+1. Backup folders listed in configuration
 1. Show message that the backup has completed
 
 ## Task scheduling
 
-TODO add guide how to add a new backup task in `Task Scheduler` in Windows
-
 - as current user - without elevated priviledges - priviledges will be requested at runtime
+
+1. Right click on `My computer -> Manage`. Enter admin password if prompted.
+1. In the left panel navigate to `System Tools -> Task Scheduler -> Task Scheduler Library`
+1. In the right panel click on `Create Task`
+    1. Tab `General`
+        - Name: `Start KVM server`
+    1. Tab `Triggers`
+        - Begin the task: `On a schedule`
+        - In the `Settings` section
+            - `Weekly`
+            - Start: `<the date of this or next Sunday>` `6:00:00` (in the morning hours)
+                - because on Sunday morning there is the least chance someone will be working on the computer
+            - Recur every `1` weeks on: `Sunday`
+        - check `Enabled` at the bottom of the window
+        - uncheck/disable everything else
+    1. Tab `Actions`
+        - `New...`
+          - Action: `Start a program`
+          - Program/script: `C:\Programme\Git\git-bash.exe`
+          - Add arguments (optional): `"/c/Users/Ňuchovia/git/windows_backup/windows_backup/backup.sh"`
+          - OK
+    1. Tab `Conditions`
+        - uncheck `Start the task only if the computer is on AC power`
+    1. Tab `Settings`
+        - If the task is already running, then the following rule applies: `Do not start a new instance`
+    1. OK
+1. OK
+
+Test whether the task launches
 
 ## Syncing between computers
 
