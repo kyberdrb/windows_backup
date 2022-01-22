@@ -176,6 +176,9 @@ finalize_backup() {
   kill $SHUTDOWNGUARD_PID 2>/dev/null
   wait $SHUTDOWNGUARD_PID 2>/dev/null
 
+  SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
+  taskkill /F /PID "${SHUTDOWNGUARD_WINPID}" 2>nul
+
   printf "¤ Backup complete\n"
   
   echo >> "${LOG_FILE}"
@@ -201,6 +204,9 @@ handle_default_kill() {
   kill $SHUTDOWNGUARD_PID 2>/dev/null
   wait $SHUTDOWNGUARD_PID 2>/dev/null
   
+  SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
+  taskkill /F /PID "${SHUTDOWNGUARD_WINPID}" 2>nul
+
   printf "Backup exitted prematurely"
   exit 1
 }
