@@ -28,14 +28,16 @@ show_info_message() {
 }
 
 clean_temp_files() {
-  mkdir --parents "${LOG_DIR}" >> "${LOG_FILE}" 2>&1
+  {
+  mkdir --parents "${LOG_DIR}"
 
-  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Cleanup - Start Time" >> "${LOG_FILE}"
-  echo >> "${LOG_FILE}"
+  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Cleanup - Start Time"
+  echo
   
   # THIS COMMAND CAN BE DESTRUCTIVE. Comment out for safer debugging/execution
-  rm --verbose --recursive --force "${TMP_DIR}" >> "${LOG_FILE}" 2>&1
-  mkdir --parents "${TMP_DIR}" >> "${LOG_FILE}" 2>&1
+  rm --verbose --recursive --force "${TMP_DIR}"
+  mkdir --parents "${TMP_DIR}"
+  } >> "${LOG_FILE}" 2>&1
   
   printf "¤ Clearing temporary files\n"
  
@@ -58,25 +60,28 @@ clean_backup_directory() {
   #  and ending up with errors like "No such file or directory"
   
   # THIS COMMAND CAN BE DESTRUCTIVE. Comment out for safer debugging/execution
-  cat backup.conf | grep -v '^[[:space:]]*$' | tr -d '\r' > "${TMP_DIR}/backup.conf.cleansed.tmp"
+  grep -v '^[[:space:]]*$' backup.conf | tr -d '\r' > "${TMP_DIR}/backup.conf.cleansed.tmp"
 
-  backup_directory="$(cat "${TMP_DIR}/backup.conf.cleansed.tmp" | head -n 1 | cut -d'=' -f2)"
+  backup_directory="$(head -n 1 "${TMP_DIR}/backup.conf.cleansed.tmp" | cut -d'=' -f2)"
   
   # THIS COMMAND CAN BE DESTRUCTIVE. Comment out for safer debugging/execution
-  cat "${TMP_DIR}/backup.conf.cleansed.tmp" | tail -n +2 > "${TMP_DIR}/backup_source_paths.tmp"
+  tail -n +2 "${TMP_DIR}/backup.conf.cleansed.tmp" > "${TMP_DIR}/backup_source_paths.tmp"
 
   # THIS COMMAND CAN BE DESTRUCTIVE. Comment out for safer debugging/execution
-  cat "${TMP_DIR}/backup.conf.cleansed.tmp" | tail -n +2 | cut -d'/' -f2 --complement | sed "s:^:${backup_directory}:g" > "${TMP_DIR}/backup_destination_paths.tmp"
+  tail -n +2 "${TMP_DIR}/backup.conf.cleansed.tmp" | cut -d'/' -f2 --complement | sed "s:^:${backup_directory}:g" > "${TMP_DIR}/backup_destination_paths.tmp"
   
   # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-  cat "${TMP_DIR}/backup_destination_paths.tmp" | xargs -I "{}" rm --verbose --recursive --force ""{}"" >> "${LOG_FILE}"
+  <"${TMP_DIR}/backup_destination_paths.tmp" xargs -I "{}" rm --verbose --recursive --force "{}" >> "${LOG_FILE}"
   
   kill $ANIMATION_PID
   wait $ANIMATION_PID 2>/dev/null
   
-  echo >> "${LOG_FILE}"
-  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Cleanup - End Time" >> "${LOG_FILE}"
-  echo >> "${LOG_FILE}"
+  {
+  echo
+  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Cleanup - End Time"
+  echo
+  } >> "${LOG_FILE}"
+
 }
 
 estimate_backup_size() {
@@ -94,8 +99,7 @@ estimate_backup_size() {
   
   # compute new directory sizes
   # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-  cat --squeeze-blank "${TMP_DIR}/backup_source_paths.tmp" | xargs -I "{}" sh -c "du --summarize "{}" 2>/dev/null | tr '\t' '#' | cut -d'#' -f1 >> "${TMP_DIR}/estimated_backed_up_directory_sizes.tmp""
-  
+  <"${TMP_DIR}/backup_source_paths.tmp" xargs -I "{}" sh -c " du --summarize ""{}"" 2>/dev/null | tr '\t' '#' | cut -d'#' -f1 >> ""${TMP_DIR}/estimated_backed_up_directory_sizes.tmp"""
   arithmetic_expression="$(paste --serial --delimiters=+ "${TMP_DIR}/estimated_backed_up_directory_sizes.tmp")"
   ESTIMATED_BACKUP_SIZE_IN_KB="$((arithmetic_expression))"
 
@@ -118,7 +122,7 @@ backup_files_and_folders() {
   echo "Prosim, nechaj pocitac zapnuty, zalohuju sa subory"
   echo
   
-  forelast_backup_log_filename=$(ls -c1 "${LOG_DIR}/" | head -n 2 | tail -n 1)
+  forelast_backup_log_filename=$(find ./logs/ -type f | sort --reverse | head -n 2 | tail -n 1)
   forelast_backup_log="${LOG_DIR}/${forelast_backup_log_filename}"
   start_timestamp=$(head -n 1 "${forelast_backup_log}" | cut -d ':' -f1)
   end_timestamp=$(tail -n 2 "${forelast_backup_log}" | tr -d '\n' | cut -d ':' -f1)
@@ -127,19 +131,21 @@ backup_files_and_folders() {
   echo "Posledna zaloha trvala ${duration_of_last_backup_in_seconds_in_human_readable_format}"
   
   estimated_backup_finish_time=$(date -d "${duration_of_last_backup_in_seconds} seconds" +"%H:%M")
-  echo "Zalohovanie bude trvat priblizne do ${estimated_backup_finish_time}"
+  echo "Zalohovanie bude trvat priblizne 'do' ${estimated_backup_finish_time}"
   echo
   
   "${SCRIPT_DIR}"/utils/busy-animation.sh "$ESTIMATED_BACKUP_SIZE_IN_KB" &
   ANIMATION_PID="$!"
   
-  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Preparation for Backup of Files And Folders - End Time" >> "${LOG_FILE}"
-  echo >> "${LOG_FILE}"
+  {
+  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Preparation for Backup of Files And Folders - End Time"
+  echo
 
-  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - Start Time" >> "${LOG_FILE}"
-  echo >> "${LOG_FILE}"
+  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - Start Time"
+  echo
+  } >> "${LOG_FILE}"
   
-  paste "${TMP_DIR}/backup_source_paths.tmp" "${TMP_DIR}/backup_destination_paths.tmp" | while read directory_path_from_source_paths_file directory_path_from_destination_paths_file
+  paste "${TMP_DIR}/backup_source_paths.tmp" "${TMP_DIR}/backup_destination_paths.tmp" | while read -r directory_path_from_source_paths_file directory_path_from_destination_paths_file
   do
     # to prevent duplicate target directory entries e.g.
     #   '/c/programme/programme'
