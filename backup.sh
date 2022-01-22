@@ -28,10 +28,11 @@ show_info_message() {
 }
 
 clean_temp_files() {
-  {
   mkdir --parents "${LOG_DIR}"
 
-  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Cleanup - Start Time"
+  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Cleanup - Start Time" >> "${LOG_FILE}" 2>&1
+
+  {
   echo
   
   # THIS COMMAND CAN BE DESTRUCTIVE. Comment out for safer debugging/execution
