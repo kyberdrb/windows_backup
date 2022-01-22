@@ -123,8 +123,7 @@ backup_files_and_folders() {
   echo "Prosim, nechaj pocitac zapnuty, zalohuju sa subory"
   echo
   
-  forelast_backup_log_filename=$(find ./logs/ -type f | sort --reverse | head -n 2 | tail -n 1)
-  forelast_backup_log="${LOG_DIR}/${forelast_backup_log_filename}"
+  forelast_backup_log=$(find "${LOG_DIR}" -type f | sort --reverse | head -n 2 | tail -n 1)
   start_timestamp=$(head -n 1 "${forelast_backup_log}" | cut -d ':' -f1)
   end_timestamp=$(tail -n 2 "${forelast_backup_log}" | tr -d '\n' | cut -d ':' -f1)
   duration_of_last_backup_in_seconds=$(( end_timestamp - start_timestamp ))

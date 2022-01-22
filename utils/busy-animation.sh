@@ -58,6 +58,7 @@ main() {
     if [ -n "${ESTIMATED_BACKUP_SIZE_IN_KB}" ]
     then
       # I'm doing the beckup on a clean drive, therefore I use 'df' utility
+      # TODO replace 'D:' with the '${BACKUP_DIR}' - pass it through script argument?
       current_amount_of_backed_up_data_in_kb=$(df | grep D: | tr -s ' ' | cut -d ' ' -f3)
 
       percent_completed=$(( current_amount_of_backed_up_data_in_kb * 100 / ESTIMATED_BACKUP_SIZE_IN_KB ))
