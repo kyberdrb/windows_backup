@@ -63,13 +63,13 @@ clean_backup_directory() {
   # THIS COMMAND CAN BE DESTRUCTIVE. Comment out for safer debugging/execution
   grep -v '^[[:space:]]*$' backup.conf | tr -d '\r' > "${TMP_DIR}/backup.conf.cleansed.tmp"
 
-  backup_directory="$(head -n 1 "${TMP_DIR}/backup.conf.cleansed.tmp" | cut -d'=' -f2)"
+  BACKUP_DIR="$(head -n 1 "${TMP_DIR}/backup.conf.cleansed.tmp" | cut -d'=' -f2)"
   
   # THIS COMMAND CAN BE DESTRUCTIVE. Comment out for safer debugging/execution
   tail -n +2 "${TMP_DIR}/backup.conf.cleansed.tmp" > "${TMP_DIR}/backup_source_paths.tmp"
 
   # THIS COMMAND CAN BE DESTRUCTIVE. Comment out for safer debugging/execution
-  tail -n +2 "${TMP_DIR}/backup.conf.cleansed.tmp" | cut -d'/' -f2 --complement | sed "s:^:${backup_directory}:g" > "${TMP_DIR}/backup_destination_paths.tmp"
+  tail -n +2 "${TMP_DIR}/backup.conf.cleansed.tmp" | cut -d'/' -f2 --complement | sed "s:^:${BACKUP_DIR}:g" > "${TMP_DIR}/backup_destination_paths.tmp"
   
   # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
   <"${TMP_DIR}/backup_destination_paths.tmp" xargs -I "{}" rm --verbose --recursive --force "{}" >> "${LOG_FILE}"
@@ -134,7 +134,7 @@ backup_files_and_folders() {
   echo "Zalohovanie bude trvat priblizne 'do' ${estimated_backup_finish_time}"
   echo
   
-  "${SCRIPT_DIR}"/utils/busy-animation.sh "$ESTIMATED_BACKUP_SIZE_IN_KB" &
+  "${SCRIPT_DIR}"/utils/busy-animation.sh "$ESTIMATED_BACKUP_SIZE_IN_KB" "$BACKUP_DIR" &
   ANIMATION_PID="$!"
   
   {
@@ -176,7 +176,8 @@ finalize_backup() {
   wait $SHUTDOWNGUARD_PID 2>/dev/null
 
   SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
-  taskkill /F /PID "${SHUTDOWNGUARD_WINPID}" 2>/dev/null
+  taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 2>&1 1>nul
+  tskill "${SHUTDOWNGUARD_WINPID}" 2>&1 1>/dev/null
 
   printf "¤ Backup complete\n"
   
@@ -204,7 +205,8 @@ handle_default_kill() {
   wait $SHUTDOWNGUARD_PID 2>/dev/null
   
   SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
-  taskkill /F /PID "${SHUTDOWNGUARD_WINPID}" 2>/dev/null
+  taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 2>&1 1>nul
+  tskill "${SHUTDOWNGUARD_WINPID}" 2>&1 1>/dev/null
 
   printf "Backup exitted prematurely"
   exit 1
@@ -226,3 +228,4 @@ main() {
 }
 
 main
+

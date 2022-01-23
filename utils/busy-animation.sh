@@ -1,6 +1,10 @@
 #!/bin/sh
 
+#set -x
+
 ESTIMATED_BACKUP_SIZE_IN_KB="$1"
+
+BACKUP_DIR="$2"
 
 # Capture signals with 'trap'. POSIX standard ommits the leading 'SIG' - the name of the interrupt is sufficient
 # - SIGTERM/TERM (kill)
@@ -50,16 +54,16 @@ main() {
   while true
   do
     progress_message=""
-    
-    index_of_next_step=$((1 + index_of_next_step % $number_of_steps))
-    
-    animation_step="$(printf -- "$animation_steps" | cut -d ':' -f $((index_of_next_step)))    "
+    index_of_next_step=$(( 1 + index_of_next_step % $number_of_steps ))
+    animation_step="$(printf -- "${animation_steps}" | cut -d ':' -f "${index_of_next_step}")    "
+
+    disk_with_backup_dir_in_git_bash_in_windows="$(echo "${BACKUP_DIR}" | cut -d '/' -f 2):"
+    used_space_on_disk_with_backup_dir_at_start=$(df | grep "${disk_with_backup_dir_in_git_bash_in_windows}" | tr -s ' ' | cut -d ' ' -f3)
 
     if [ -n "${ESTIMATED_BACKUP_SIZE_IN_KB}" ]
     then
-      # I'm doing the beckup on a clean drive, therefore I use 'df' utility
-      # TODO replace 'D:' with the '${BACKUP_DIR}' - pass it through script argument?
-      current_amount_of_backed_up_data_in_kb=$(df | grep D: | tr -s ' ' | cut -d ' ' -f3)
+      current_used_space_on_disk_with_backup_dir=$(df | grep "${disk_with_backup_dir_in_git_bash_in_windows}" | tr -s ' ' | cut -d ' ' -f3)
+      current_amount_of_backed_up_data_in_kb=$(( current_used_space_on_disk_with_backup_dir - used_space_on_disk_with_backup_dir_at_start ))
 
       percent_completed=$(( current_amount_of_backed_up_data_in_kb * 100 / ESTIMATED_BACKUP_SIZE_IN_KB ))
       percent_completed_message="${percent_completed}%% completed    "
@@ -86,3 +90,4 @@ main() {
 }
 
 main
+
