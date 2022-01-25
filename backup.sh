@@ -48,8 +48,7 @@ clean_temp_files() {
 }
 
 clean_backup_directory() {
-  echo "¤ Cleaning backup directory"
-  echo
+  printf "¤ Cleaning backup directory\n"
   
   "${SCRIPT_DIR}"/utils/busy-animation.sh &
   ANIMATION_PID="$!"
@@ -89,6 +88,7 @@ estimate_backup_size() {
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimate Backup Time - Start Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
 
+  printf "\n"
   printf "¤ Estimating backup size\n"
   
   "${SCRIPT_DIR}"/utils/busy-animation.sh &
@@ -107,9 +107,14 @@ estimate_backup_size() {
   kill $ANIMATION_PID
   wait $ANIMATION_PID 2>/dev/null
   
-  echo "  Estimated backup size: $ESTIMATED_BACKUP_SIZE_IN_KB" KB
+  echo "Estimated backup size: $ESTIMATED_BACKUP_SIZE_IN_KB kB"
   echo
   
+  {
+  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimated backup size: $ESTIMATED_BACKUP_SIZE_IN_KB kB"
+  echo
+  } >> "${LOG_FILE}"
+
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimate Backup Time - End Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
 }
@@ -123,16 +128,21 @@ backup_files_and_folders() {
   echo "Prosim, nechaj pocitac zapnuty, zalohuju sa subory"
   echo
   
-  forelast_backup_log=$(find "${LOG_DIR}" -type f | sort --reverse | head -n 2 | tail -n 1)
-  start_timestamp=$(head -n 1 "${forelast_backup_log}" | cut -d ':' -f1)
-  end_timestamp=$(tail -n 2 "${forelast_backup_log}" | tr -d '\n' | cut -d ':' -f1)
-  duration_of_last_backup_in_seconds=$(( end_timestamp - start_timestamp ))
-  duration_of_last_backup_in_seconds_in_human_readable_format=$(date -d@${duration_of_last_backup_in_seconds} -u "+%-k hod. %M minut")
-  echo "Posledna zaloha trvala ${duration_of_last_backup_in_seconds_in_human_readable_format}"
+  number_of_logs="$(find "${LOG_DIR}" -type f | wc -l)"
   
-  estimated_backup_finish_time=$(date -d "${duration_of_last_backup_in_seconds} seconds" +"%H:%M")
-  echo "Zalohovanie bude trvat priblizne 'do' ${estimated_backup_finish_time}"
-  echo
+  if [ $number_of_logs -ge 2 ]
+  then
+    forelast_backup_log=$(find "${LOG_DIR}" -type f | sort --reverse | head -n 2 | tail -n 1)
+    start_timestamp=$(head -n 1 "${forelast_backup_log}" | cut -d ':' -f1)
+    end_timestamp=$(tail -n 2 "${forelast_backup_log}" | tr -d '\n' | cut -d ':' -f1)
+    duration_of_last_backup_in_seconds=$(( end_timestamp - start_timestamp ))
+    duration_of_last_backup_in_seconds_in_human_readable_format=$(date -d@${duration_of_last_backup_in_seconds} -u "+%-k hod. %M minut")
+    echo "Posledna zaloha trvala ${duration_of_last_backup_in_seconds_in_human_readable_format}"
+
+    estimated_backup_finish_time=$(date -d "${duration_of_last_backup_in_seconds} seconds" +"%H:%M")
+    echo "Zalohovanie bude trvat priblizne 'do' ${estimated_backup_finish_time}"
+    echo
+  fi
   
   "${SCRIPT_DIR}"/utils/busy-animation.sh "$ESTIMATED_BACKUP_SIZE_IN_KB" "$BACKUP_DIR" &
   ANIMATION_PID="$!"
@@ -223,6 +233,9 @@ main() {
   clean_temp_files
   clean_backup_directory
   estimate_backup_size
+
+  # TODO add function check_free_space which checks whether the backup drive has enough free space to carry the entire backup
+
   backup_files_and_folders
   finalize_backup
 }

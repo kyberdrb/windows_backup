@@ -51,14 +51,14 @@ main() {
   index_of_next_step=$first_step_index
   number_of_steps=4
   
+  disk_with_backup_dir_in_git_bash_in_windows="$(echo "${BACKUP_DIR}" | cut -d '/' -f 2 | tr '[:lower:]' '[:upper:]'):"
+  used_space_on_disk_with_backup_dir_at_start=$(df | grep "${disk_with_backup_dir_in_git_bash_in_windows}" | tr -s ' ' | cut -d ' ' -f3)
+
   while true
   do
     progress_message=""
     index_of_next_step=$(( 1 + index_of_next_step % $number_of_steps ))
-    animation_step="$(printf -- "${animation_steps}" | cut -d ':' -f "${index_of_next_step}")    "
-
-    disk_with_backup_dir_in_git_bash_in_windows="$(echo "${BACKUP_DIR}" | cut -d '/' -f 2):"
-    used_space_on_disk_with_backup_dir_at_start=$(df | grep "${disk_with_backup_dir_in_git_bash_in_windows}" | tr -s ' ' | cut -d ' ' -f3)
+    animation_step="$(printf -- " ${animation_steps}" | cut -d ':' -f "${index_of_next_step}")   "
 
     if [ -n "${ESTIMATED_BACKUP_SIZE_IN_KB}" ]
     then
@@ -80,6 +80,7 @@ main() {
       fi
     fi
     
+    # TODO add currently backed up file - with 'tail -n 1 $LOG_FILE' ?
     progress_message="${animation_step}${percent_completed_message}${amount_of_backed_up_data}"
     
     printf -- "${progress_message} \r"
