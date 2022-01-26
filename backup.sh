@@ -144,7 +144,7 @@ backup_files_and_folders() {
     echo
   fi
   
-  "${SCRIPT_DIR}"/utils/busy-animation.sh "$ESTIMATED_BACKUP_SIZE_IN_KB" "$BACKUP_DIR" &
+  "${SCRIPT_DIR}"/utils/busy-animation.sh "${ESTIMATED_BACKUP_SIZE_IN_KB}" "${BACKUP_DIR}" "${LOG_FILE}" &
   ANIMATION_PID="$!"
   
   {
