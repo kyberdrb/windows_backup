@@ -60,7 +60,7 @@ main() {
   do
     progress_message=""
     index_of_next_step=$(( 1 + index_of_next_step % $number_of_steps ))
-    animation_step="$(printf -- " ${animation_steps}" | cut -d ':' -f "${index_of_next_step}")   "
+    animation_step=" $(printf -- "${animation_steps}" | cut -d ':' -f "${index_of_next_step}")   "
 
     if [ -n "${ESTIMATED_BACKUP_SIZE_IN_KB}" ]
     then

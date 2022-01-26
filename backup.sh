@@ -119,6 +119,21 @@ estimate_backup_size() {
   echo >> "${LOG_FILE}"
 }
 
+#check_free_space() {
+#  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Check sufficient free space on the backup drive - Start Time" >> "${LOG_FILE}"
+#  echo >> "${LOG_FILE}"
+
+#  free_space_on_disk_with_backup_dir_at_start=$(df | grep "${BACKUP_DIR}" | tr -s '[:space:]' | cut -d ' ' -f 4)
+#  if [ $free_space_on_disk_with_backup_dir_at_start -lt $ESTIMATED_BACKUP_SIZE_IN_KB ]
+#  then
+#    echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Check sufficient free space on the backup drive - HALT: Backup size is larger than the free space on the backup drive - End Time" >> "${LOG_FILE}"
+#    exit 1
+#  fi
+  
+#  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Check sufficient free space on the backup drive - PASS: Enough free space available for backup on the backup drive - End Time" >> "${LOG_FILE}"
+#  echo >> "${LOG_FILE}"
+#}
+
 backup_files_and_folders() {
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Preparation for Backup of Files And Folders - Start Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
@@ -235,6 +250,7 @@ main() {
   estimate_backup_size
 
   # TODO add function check_free_space which checks whether the backup drive has enough free space to carry the entire backup
+  #check_free_space
 
   backup_files_and_folders
   finalize_backup
