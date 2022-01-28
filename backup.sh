@@ -100,7 +100,7 @@ estimate_backup_size() {
   
   # compute new directory sizes
   # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-  <"${TMP_DIR}/backup_source_paths.tmp" xargs -I "{}" sh -c " du --summarize ""{}"" 2>/dev/null | tr '\t' '#' | cut -d'#' -f1 >> ""${TMP_DIR}/estimated_backed_up_directory_sizes.tmp"""
+  <"${TMP_DIR}/backup_source_paths.tmp" xargs -I "{}" sh -c "du --summarize ""{}"" 2>/dev/null | tr '\t' '#' | cut -d'#' -f1 >> ""${TMP_DIR}/estimated_backed_up_directory_sizes.tmp"""
   arithmetic_expression="$(paste --serial --delimiters=+ "${TMP_DIR}/estimated_backed_up_directory_sizes.tmp")"
   ESTIMATED_BACKUP_SIZE_IN_KB="$((arithmetic_expression))"
 
@@ -119,20 +119,26 @@ estimate_backup_size() {
   echo >> "${LOG_FILE}"
 }
 
-#check_free_space() {
-#  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Check sufficient free space on the backup drive - Start Time" >> "${LOG_FILE}"
-#  echo >> "${LOG_FILE}"
+check_free_space() {
+  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Check sufficient free space on the backup drive - Start Time" >> "${LOG_FILE}"
+  echo >> "${LOG_FILE}"
 
-#  free_space_on_disk_with_backup_dir_at_start=$(df | grep "${BACKUP_DIR}" | tr -s '[:space:]' | cut -d ' ' -f 4)
-#  if [ $free_space_on_disk_with_backup_dir_at_start -lt $ESTIMATED_BACKUP_SIZE_IN_KB ]
-#  then
-#    echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Check sufficient free space on the backup drive - HALT: Backup size is larger than the free space on the backup drive - End Time" >> "${LOG_FILE}"
-#    exit 1
-#  fi
+  linux_style_backup_disk_mountpoint_of_backup_dir_in_git_bash_in_windows="$(echo "${BACKUP_DIR}" | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]'):"
+  free_space_on_disk_with_backup_dir_at_start=$(df | grep "${linux_style_backup_disk_mountpoint_of_backup_dir_in_git_bash_in_windows}" | tr -s '[:space:]' | cut -d ' ' -f 4)
+  if [ $free_space_on_disk_with_backup_dir_at_start -lt $ESTIMATED_BACKUP_SIZE_IN_KB ]
+  then
+    echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Check sufficient free space on the backup drive - HALT: Backup size is larger than the free space on the backup drive - End Time" >> "${LOG_FILE}"
+    exit 1
+  fi
   
-#  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Check sufficient free space on the backup drive - PASS: Enough free space available for backup on the backup drive - End Time" >> "${LOG_FILE}"
-#  echo >> "${LOG_FILE}"
-#}
+  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Check sufficient free space on the backup drive - PASS: Enough free space available for backup on the backup drive - continuing... - End Time" >> "${LOG_FILE}"
+  echo >> "${LOG_FILE}"
+}
+
+generate_files_and_dirs_list() {
+  <"${TMP_DIR}/backup_source_paths.tmp" xargs -I "{}" sh -c "find "{}" >> "${TMP_DIR}/files_and_dirs_on_source.tmp""
+  cut -d'/' -f2 --complement "${TMP_DIR}/files_and_dirs_on_source.tmp" | sed "s:^:${BACKUP_DIR}:g" > "${TMP_DIR}/files_and_dirs_paths_for_backup_dir.tmp"
+}
 
 backup_files_and_folders() {
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Preparation for Backup of Files And Folders - Start Time" >> "${LOG_FILE}"
@@ -170,23 +176,12 @@ backup_files_and_folders() {
   echo
   } >> "${LOG_FILE}"
   
-  paste "${TMP_DIR}/backup_source_paths.tmp" "${TMP_DIR}/backup_destination_paths.tmp" | while read -r directory_path_from_source_paths_file directory_path_from_destination_paths_file
+  paste "${TMP_DIR}/files_and_dirs_on_source.tmp" "${TMP_DIR}/files_and_dirs_paths_for_backup_dir.tmp" | while read -r directory_path_from_source_paths_file directory_path_from_destination_paths_file
   do
-    # to prevent duplicate target directory entries e.g.
-    #   '/c/programme/programme'
-    #  instead go in the directory structure one level up
-    #  and copy it onto the current directory
-    
-    destination_directory_path_one_level_above="${directory_path_from_destination_paths_file}/.."
-    
-    # Prevent error "cp cannot create directory No such file or directory" present in the log file
-    #  by creating a destination directory before actual copying
-    #  https://unix.stackexchange.com/questions/511477/cannot-create-directory-no-such-file-or-directory/511480#511480
-    
     mkdir --parents "${directory_path_from_destination_paths_file}" >> "${LOG_FILE}" 2>&1
-    
+
     # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-    cp --recursive --verbose --force --preserve=mode,ownership,timestamps "${directory_path_from_source_paths_file}" "${destination_directory_path_one_level_above}" >> "${LOG_FILE}" 2>&1
+    cp --verbose --force --preserve=mode,ownership,timestamps "${directory_path_from_source_paths_file}" "${destination_directory_path_one_level_above}" >> "${LOG_FILE}" 2>&1
   done
 
   kill $ANIMATION_PID 2>/dev/null
@@ -249,8 +244,9 @@ main() {
   clean_backup_directory
   estimate_backup_size
 
-  # TODO add function check_free_space which checks whether the backup drive has enough free space to carry the entire backup
-  #check_free_space
+  # TODO test function check_free_space to check whether the backup drive has enough free space to carry the entire backup
+  check_free_space
+  generate_files_and_dirs_list
 
   backup_files_and_folders
   finalize_backup

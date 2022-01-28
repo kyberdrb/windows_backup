@@ -71,7 +71,7 @@ main() {
       percent_completed_message="${percent_completed}%% completed    "
       amount_of_backed_up_data="$current_amount_of_backed_up_data_in_kb/$ESTIMATED_BACKUP_SIZE_IN_KB    "
       
-      # TODO add currently backed up file - with 'tail -n 1 $LOG_FILE' ?
+      # TODO test currently backed up file - with 'tail -n 1 $LOG_FILE' ?
       currently_backed_up_file="    $(tail -n 1 ${LOG_FILE})"
 
       if [ "${CONTINUE_EXECUTION_OF_SCRIPT}" = "false" ]
