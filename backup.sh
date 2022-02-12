@@ -81,7 +81,6 @@ clean_backup_directory() {
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Cleanup - End Time"
   echo
   } >> "${LOG_FILE}"
-
 }
 
 estimate_backup_size() {
@@ -136,8 +135,12 @@ check_free_space() {
 }
 
 generate_files_and_dirs_list() {
-  <"${TMP_DIR}/backup_source_paths.tmp" xargs -I "{}" sh -c "find "{}" >> "${TMP_DIR}/files_and_dirs_on_source.tmp""
-  cut -d'/' -f2 --complement "${TMP_DIR}/files_and_dirs_on_source.tmp" | sed "s:^:${BACKUP_DIR}:g" > "${TMP_DIR}/files_and_dirs_paths_for_backup_dir.tmp"
+  # generate source file list
+  # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
+  <"${TMP_DIR}/backup_source_paths.tmp" xargs -I "{}" sh -c "find "{}" >> "${TMP_DIR}/source_files_and_dirs_paths.tmp"
+
+  # generate destination file list
+  cut -d'/' -f2 --complement "${TMP_DIR}/source_files_and_dirs_paths.tmp" | cut -d'/' -f2 --complement | sed "s:^:${BACKUP_DIR}:g" > "${TMP_DIR}/destination_files_and_dirs_paths.tmp"
 }
 
 backup_files_and_folders() {
@@ -176,12 +179,16 @@ backup_files_and_folders() {
   echo
   } >> "${LOG_FILE}"
   
-  paste "${TMP_DIR}/files_and_dirs_on_source.tmp" "${TMP_DIR}/files_and_dirs_paths_for_backup_dir.tmp" | while read -r directory_path_from_source_paths_file directory_path_from_destination_paths_file
+  paste "${TMP_DIR}/source_files_and_dirs_paths.tmp" "${TMP_DIR}/destination_files_and_dirs_paths.tmp" | while read -r source_file destination_file
   do
-    mkdir --parents "${directory_path_from_destination_paths_file}" >> "${LOG_FILE}" 2>&1
+    printf "%s\n%s\n\n" "${source_file}" "${destination_file}"
+
+    #if [ -d "${TMP_DIR}/source_files_and_dirs_paths.tmp" ]; then
+    #  mkdir --parents "${directory_path_from_destination_paths_file}" >> "${LOG_FILE}" 2>&1
+    #fi
 
     # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-    cp --verbose --force --preserve=mode,ownership,timestamps "${directory_path_from_source_paths_file}" "${destination_directory_path_one_level_above}" >> "${LOG_FILE}" 2>&1
+    #cp --verbose --force --preserve=mode,ownership,timestamps "${source_file}" "${destination_file}" >> "${LOG_FILE}" 2>&1
   done
 
   kill $ANIMATION_PID 2>/dev/null

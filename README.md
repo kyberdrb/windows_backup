@@ -138,4 +138,13 @@ https://github.com/shivansh/TCP-IP-Regression-TestSuite/commit/8f1fb4c4f5a96b160
 - https://pubs.opengroup.org/onlinepubs/009695399/utilities/test.html#tag_04_140_05
 - https://duckduckgo.com/?q=directory+name+posix+shell&ia=web
 - https://stackoverflow.com/questions/4585929/how-to-use-cp-command-to-exclude-a-specific-directory/14789400#14789400
+- https://unix.stackexchange.com/questions/3593/using-xargs-with-input-from-a-file/3598#3598
+- https://www.tutorialspoint.com/how-to-find-and-sort-files-based-on-modification-date-and-time-in-linux
+- https://github.com/koalaman/shellcheck/wiki/SC2129
+
+## Command Prompt
+
+- https://www.shellhacks.com/windows-taskkill-kill-process-by-pid-name-port-cmd/
+- https://stackoverflow.com/questions/4507312/how-to-redirect-stderr-to-null-in-cmd-exe#4507627
+- https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-xp/bb490982(v=technet.10)?redirectedfrom=MSDN
 
