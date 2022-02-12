@@ -43,7 +43,7 @@ clean_temp_files() {
   printf "¤ Clearing temporary files\n"
  
   # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-  "${SCRIPT_DIR}/utils/windows_cleaner/windows_cleaner-clean.sh"
+  #"${SCRIPT_DIR}/utils/windows_cleaner/windows_cleaner-clean.sh"
   echo
 }
 
@@ -187,6 +187,11 @@ backup_files_and_folders() {
     #  mkdir --parents "${directory_path_from_destination_paths_file}" >> "${LOG_FILE}" 2>&1
     #fi
 
+    # Send the busy-animation the path to currently copied file...
+    #   - try first whether the log file will be refreshed after every append of currently copied file to test file flushing in shell script
+    #   - when it doesn't refresh every time, remove the reading of last log line in busy-animation and send the file path to busy-animation through named pipe?
+    #   - do a perl script that will open the log file, log the copied source file, flush and close the log file and then let the busy-script to read the last line of the log file which contains the path of the last copied file
+
     # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
     #cp --verbose --force --preserve=mode,ownership,timestamps "${source_file}" "${destination_file}" >> "${LOG_FILE}" 2>&1
   done
@@ -203,7 +208,7 @@ finalize_backup() {
   wait $SHUTDOWNGUARD_PID 2>/dev/null
 
   SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
-  taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 2>&1 1>nul
+  taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 2>&1 1>/dev/null
   tskill "${SHUTDOWNGUARD_WINPID}" 2>&1 1>/dev/null
 
   printf "¤ Backup complete\n"
@@ -253,6 +258,8 @@ main() {
 
   # TODO test function check_free_space to check whether the backup drive has enough free space to carry the entire backup
   check_free_space
+
+  # TODO test function generate_files_and_dirs_list to check whether the source and destination paths are valid
   generate_files_and_dirs_list
 
   backup_files_and_folders
