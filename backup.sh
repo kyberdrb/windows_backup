@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -x
+#set -x
 
 SCRIPT_DIR="$(dirname "$(readlink --canonicalize "$0")")"
 LOG_DIR="${SCRIPT_DIR}/logs"
@@ -101,15 +101,16 @@ estimate_backup_size() {
   
   # compute new directory sizes
   # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-  <"${TMP_DIR}/backup_source_paths.tmp" xargs -I "{}" sh -c "du --summarize ""{}"" 2>/dev/null | tr '\t' '#' | cut -d'#' -f1 >> ""${TMP_DIR}/estimated_backed_up_directory_sizes.tmp"""
+  #<"${TMP_DIR}/backup_source_paths.tmp" xargs -I "{}" sh -c "du --summarize ""{}"" 2>/dev/null | tr '\t' '#' | cut -d'#' -f1 >> ""${TMP_DIR}/estimated_backed_up_directory_sizes.tmp"""
   arithmetic_expression="$(paste --serial --delimiters=+ "${TMP_DIR}/estimated_backed_up_directory_sizes.tmp")"
   ESTIMATED_BACKUP_SIZE_IN_KB="$((arithmetic_expression))"
+  
+  ESTIMATED_BACKUP_SIZE_IN_KB="208608393"
 
   kill $ANIMATION_PID
   wait $ANIMATION_PID 2>/dev/null
   
-  echo "Estimated backup size: $ESTIMATED_BACKUP_SIZE_IN_KB kB"
-  echo
+  echo "  • Estimated backup size:      $ESTIMATED_BACKUP_SIZE_IN_KB kB"
   
   {
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimated backup size: $ESTIMATED_BACKUP_SIZE_IN_KB kB"
@@ -131,19 +132,52 @@ check_free_space() {
   ANIMATION_PID="$!"
 
   linux_style_backup_disk_mountpoint_of_backup_dir_in_git_bash_in_windows="$(echo "${BACKUP_DIR}" | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]'):"
-  free_space_on_disk_with_backup_dir_at_start=$(df | grep "${linux_style_backup_disk_mountpoint_of_backup_dir_in_git_bash_in_windows}" | tr -s '[:space:]' | cut -d ' ' -f 4)
+  
+  backup_drive_info="$(df | grep --ignore-case "${linux_style_backup_disk_mountpoint_of_backup_dir_in_git_bash_in_windows}" | wc -l)"
+  
+  # Is backup drive mounted?
+  if [ ${backup_drive_info} -eq 0 ]
+  then
+    echo "  • Backup drive not mounted."
+    
+    kill $ANIMATION_PID
+    wait $ANIMATION_PID 2>/dev/null
+    
+    kill $SHUTDOWNGUARD_PID 2>/dev/null
+    wait $SHUTDOWNGUARD_PID 2>/dev/null
 
-  printf "%s\n" "    - Estimated backup size: ${ESTIMATED_BACKUP_SIZE_IN_KB} KB"
-  printf "%s\n" "    - Free space on backup drive: ${free_space_on_disk_with_backup_dir_at_start} KB"
+    SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
+    taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
+    tskill "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
+
+    # TODO replace the file path with a variable
+    rm --force "/tmp/currently_backed_up_file.txt"
+    
+    exit 2
+  fi
+
+  free_space_on_disk_with_backup_dir_at_start=$(df | grep --ignore-case "${linux_style_backup_disk_mountpoint_of_backup_dir_in_git_bash_in_windows}" | tr -s '[:space:]' | cut -d ' ' -f 4)
+  
+  printf "%s\n" "  • Free space on backup drive: ${free_space_on_disk_with_backup_dir_at_start} kB"
 
   if [ $free_space_on_disk_with_backup_dir_at_start -lt $ESTIMATED_BACKUP_SIZE_IN_KB ]
   then
     echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Check sufficient free space on the backup drive - HALT: Backup size is larger than the free space on the backup drive - End Time" >> "${LOG_FILE}"
 
-    printf "%s\n" "     - The backup needs more space on the backup drive."
+    printf "%s\n" "   • The backup needs more space on the backup drive."
 
     kill $ANIMATION_PID
     wait $ANIMATION_PID 2>/dev/null
+    
+    kill $SHUTDOWNGUARD_PID 2>/dev/null
+    wait $SHUTDOWNGUARD_PID 2>/dev/null
+
+    SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
+    taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
+    tskill "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
+
+    # TODO replace the file path with a variable
+    rm --force "/tmp/currently_backed_up_file.txt"
 
     exit 1
   fi
@@ -151,7 +185,7 @@ check_free_space() {
   kill $ANIMATION_PID
   wait $ANIMATION_PID 2>/dev/null
 
-  printf "%s\n" "    - Enough space for backup on the backup drive. Proceeding..."
+  printf "%s\n" "  • Enough space for backup on the backup drive. Proceeding..."
 
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Check sufficient free space on the backup drive - PASS: Enough free space available for backup on the backup drive - continuing... - End Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
@@ -167,23 +201,27 @@ generate_files_and_dirs_list() {
   "${SCRIPT_DIR}"/utils/busy-animation.sh &
   ANIMATION_PID="$!"
 
-  # generate source file list
+  printf "%s\n" "  • generate source list of paths"
   # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-  <"${TMP_DIR}/backup_source_paths.tmp" xargs -I % sh -c "find "%" >> "${TMP_DIR}/source_files_and_dirs_paths.tmp" 2>/dev/null"
+  <"${TMP_DIR}/backup_source_paths.tmp" xargs -I "{}" sh -c "find "{}" >> "${TMP_DIR}/source_files_and_dirs_paths.tmp" 2>/dev/null"
 
-  # generate destination file list
-  cut -d'/' -f2 --complement "${TMP_DIR}/source_files_and_dirs_paths.tmp" | cut -d'/' -f2 --complement | sed "s:^:${BACKUP_DIR}:g" > "${TMP_DIR}/destination_files_and_dirs_paths.tmp"
+  printf "%s\n" "  • generate destination list of paths"
+  # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
+  cut -d'/' -f2 --complement "${TMP_DIR}/source_files_and_dirs_paths.tmp" | sed "s:^:${BACKUP_DIR}:g" > "${TMP_DIR}/destination_files_and_dirs_paths.tmp"
+  
+  printf "%s\n" "  • generate combined list of paths"
+  # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
+  paste --delimiter=';' "${TMP_DIR}/source_files_and_dirs_paths.tmp" "${TMP_DIR}/destination_files_and_dirs_paths.tmp" > "${TMP_DIR}/source_and_destination_files_and_dirs_paths.tmp"
 
   kill $ANIMATION_PID
   wait $ANIMATION_PID 2>/dev/null
-
-  printf "%s\n" "File lists generated."
 }
 
 estimate_backup_duration() {
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimate Backup Duration - Start Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
 
+  printf "\n"
   printf "%s\n" "¤ Estimating backup duration"
   
   "${SCRIPT_DIR}"/utils/busy-animation.sh &
@@ -203,10 +241,10 @@ estimate_backup_duration() {
     kill $ANIMATION_PID
     wait $ANIMATION_PID 2>/dev/null
 
-    printf "%s\n" "    - Posledna zaloha trvala ${duration_of_last_backup_in_seconds_in_human_readable_format}"
+    printf "%s\n" "  • Posledna zaloha trvala ${duration_of_last_backup_in_seconds_in_human_readable_format}"
 
     estimated_backup_finish_time=$(date -d "${duration_of_last_backup_in_seconds} seconds" +"%H:%M")
-    echo "    - Zalohovanie bude trvat priblizne 'do' ${estimated_backup_finish_time}"
+    echo "  • Zalohovanie bude trvat priblizne 'do' ${estimated_backup_finish_time}"
     echo
   fi
 
@@ -217,19 +255,22 @@ estimate_backup_duration() {
   echo >> "${LOG_FILE}"
 }
 
-backup_files_and_folders() { 
+backup_files_and_folders() {
   "${SCRIPT_DIR}"/utils/busy-animation.sh "${ESTIMATED_BACKUP_SIZE_IN_KB}" "${BACKUP_DIR}" &
   ANIMATION_PID="$!"
   
   {
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - Start Time"
   echo
-  } >> "${LOG_FILE}" 
-
-  paste "${TMP_DIR}/source_files_and_dirs_paths.tmp" "${TMP_DIR}/destination_files_and_dirs_paths.tmp" | while read -r source_file destination_file
+  } >> "${LOG_FILE}"
+  
+  while IFS= read -r line
   do
+    source_file="$(echo ${line} | cut --delimiter=';' --fields=1)"
+    destination_file="$(echo ${line} | cut --delimiter=';' --fields=2)"
+    
     # THIS COMMAND CAN BE TIME-CONSUMING AND MAKE A LOT OF OUTPUT IN THE TERMINAL. Comment out for faster and more readable debugging/execution.
-    #printf "%s\n%s\n" "${source_file}" "${destination_file}"
+    #printf "%s\n%s\n\n" "${source_file}" "${destination_file}"
     #sleep 5
 
     if [ -d "${TMP_DIR}/source_files_and_dirs_paths.tmp" ]; then
@@ -249,7 +290,7 @@ backup_files_and_folders() {
 
     # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
     #cp --verbose --force --preserve=mode,ownership,timestamps "${source_file}" "${destination_file}" >> "${LOG_FILE}" 2>&1
-  done
+  done < "${TMP_DIR}/source_and_destination_files_and_dirs_paths.tmp"
  
   echo >> "${LOG_FILE}"
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - End Time" >> "${LOG_FILE}"
@@ -321,18 +362,15 @@ main() {
   clean_backup_directory
 
   estimate_backup_size
-
-  # TODO test function check_free_space to check whether the backup drive has enough free space to carry the entire backup
   check_free_space
 
   # TODO test function generate_files_and_dirs_list to check whether the source and destination paths are valid
   generate_files_and_dirs_list
 
-  estimate_backup_duration
+  #estimate_backup_duration
 
-  backup_files_and_folders
-  finalize_backup
+  #backup_files_and_folders
+  #finalize_backup
 }
 
 main
-
