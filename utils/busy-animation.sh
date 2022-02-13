@@ -66,7 +66,7 @@ main() {
       current_amount_of_backed_up_data_in_kb=$(( current_used_space_on_disk_with_backup_dir - used_space_on_disk_with_backup_dir_at_start ))
 
       percent_completed=$(( current_amount_of_backed_up_data_in_kb * 100 / ESTIMATED_BACKUP_SIZE_IN_KB ))
-      percent_completed_message="${percent_completed}%% completed"
+      percent_completed_message="${percent_completed}% completed"
       amount_of_backed_up_data="$current_amount_of_backed_up_data_in_kb/${ESTIMATED_BACKUP_SIZE_IN_KB}"
       
       currently_backed_up_file=""

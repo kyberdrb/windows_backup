@@ -278,6 +278,8 @@ main() {
   # TODO test function check_free_space to check whether the backup drive has enough free space to carry the entire backup
   check_free_space
 
+  estimate_backup_duration
+
   # TODO test function generate_files_and_dirs_list to check whether the source and destination paths are valid
   generate_files_and_dirs_list
 
