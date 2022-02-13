@@ -143,8 +143,8 @@ generate_files_and_dirs_list() {
   cut -d'/' -f2 --complement "${TMP_DIR}/source_files_and_dirs_paths.tmp" | cut -d'/' -f2 --complement | sed "s:^:${BACKUP_DIR}:g" > "${TMP_DIR}/destination_files_and_dirs_paths.tmp"
 }
 
-backup_files_and_folders() {
-  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Preparation for Backup of Files And Folders - Start Time" >> "${LOG_FILE}"
+estimate_backup_duration() {
+  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimate Backup Duration - Start Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
 
   printf "¤ Backing up files\n"
@@ -154,6 +154,7 @@ backup_files_and_folders() {
   
   number_of_logs="$(find "${LOG_DIR}" -type f | wc -l)"
   
+  # TODO make the estimation of backup time more robust by looking for the latest log file with completed and successful backup
   if [ $number_of_logs -ge 2 ]
   then
     forelast_backup_log=$(find "${LOG_DIR}" -type f | sort --reverse | head -n 2 | tail -n 1)
@@ -167,21 +168,25 @@ backup_files_and_folders() {
     echo "Zalohovanie bude trvat priblizne 'do' ${estimated_backup_finish_time}"
     echo
   fi
-  
-  "${SCRIPT_DIR}"/utils/busy-animation.sh "${ESTIMATED_BACKUP_SIZE_IN_KB}" "${BACKUP_DIR}" "${LOG_FILE}" &
+
+  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimate Backup Duration - End Time" >> "${LOG_FILE}"
+  echo >> "${LOG_FILE}"
+}
+
+backup_files_and_folders() { 
+  "${SCRIPT_DIR}"/utils/busy-animation.sh "${ESTIMATED_BACKUP_SIZE_IN_KB}" "${BACKUP_DIR}" &
   ANIMATION_PID="$!"
   
   {
-  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Preparation for Backup of Files And Folders - End Time"
-  echo
-
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - Start Time"
   echo
-  } >> "${LOG_FILE}"
-  
+  } >> "${LOG_FILE}" 
+
   paste "${TMP_DIR}/source_files_and_dirs_paths.tmp" "${TMP_DIR}/destination_files_and_dirs_paths.tmp" | while read -r source_file destination_file
   do
+    # THIS COMMAND CAN BE TIME-CONSUMING AND MAKE A LOT OF OUTPUT IN THE TERMINAL. Comment out for faster and more readable debugging/execution.
     printf "%s\n%s\n\n" "${source_file}" "${destination_file}"
+    sleep 5
 
     #if [ -d "${TMP_DIR}/source_files_and_dirs_paths.tmp" ]; then
     #  mkdir --parents "${directory_path_from_destination_paths_file}" >> "${LOG_FILE}" 2>&1
@@ -191,6 +196,10 @@ backup_files_and_folders() {
     #   - try first whether the log file will be refreshed after every append of currently copied file to test file flushing in shell script
     #   - when it doesn't refresh every time, remove the reading of last log line in busy-animation and send the file path to busy-animation through named pipe?
     #   - do a perl script that will open the log file, log the copied source file, flush and close the log file and then let the busy-script to read the last line of the log file which contains the path of the last copied file
+
+    # Save currently copied file to tmpfs (RAM) to spare SSD/HDD storage for longevity and speed
+    # TODO replace the file path with a variable
+    printf "%s\n" "${source_file}" > "/tmp/currently_backed_up_file.txt"
 
     # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
     #cp --verbose --force --preserve=mode,ownership,timestamps "${source_file}" "${destination_file}" >> "${LOG_FILE}" 2>&1
@@ -211,6 +220,9 @@ finalize_backup() {
   SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
   taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
   tskill "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
+
+  # TODO replace the file path with a variable
+  rm --force "/tmp/currently_backed_up_file.txt"
   # END OF FUNCTION
 
   printf "¤ Backup complete\n"
@@ -242,6 +254,9 @@ handle_default_kill() {
   SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
   taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
   tskill "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
+
+  # TODO replace the file path with a variable
+  rm --force "/tmp/currently_backed_up_file.txt"
   # END OF FUNCTION
 
   printf "Backup exitted prematurely"

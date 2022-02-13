@@ -140,7 +140,23 @@ https://github.com/shivansh/TCP-IP-Regression-TestSuite/commit/8f1fb4c4f5a96b160
 - https://stackoverflow.com/questions/4585929/how-to-use-cp-command-to-exclude-a-specific-directory/14789400#14789400
 - https://unix.stackexchange.com/questions/3593/using-xargs-with-input-from-a-file/3598#3598
 - https://www.tutorialspoint.com/how-to-find-and-sort-files-based-on-modification-date-and-time-in-linux
-- https://github.com/koalaman/shellcheck/wiki/SC2129
+- ShellCheck: Consider using { cmd1; cmd2; } >> file instead of individual redirects.: https://github.com/koalaman/shellcheck/wiki/SC2129
+- ShellCheck: To redirect stdout+stderr, 2>&1 must be last (or use `{ cmd > file; } 2>&1` to clarify).: https://www.shellcheck.net/wiki/SC2069 -- To redirect stdout+stderr, 2>&1 m...
+- ShellCheck: Word is of the form "A"B"C" (B indicated). Did you mean "ABC" or "A\\"B\\"C"?:  https://www.shellcheck.net/wiki/SC2140 -- Word is of the form "A"B"C" (B in...
+- ShellCheck: Consider using pgrep instead of grepping ps output.: https://www.shellcheck.net/wiki/SC2009 -- Consider using pgrep instead of g...
+  - `pgrep` no available in `Git Bash`. Using `ps` + `grep` instead. At the thime of writing it gives the expected output of returning the PID and the state of the process (running/stopped).
+- ShellCheck: Don't use variables in the printf format string. Use printf "..%s.." "$foo".: https://www.shellcheck.net/wiki/SC2059 -- Don't use variables in the printf...
+- ShellCheck: Double quote to prevent globbing and word splitting.: https://www.shellcheck.net/wiki/SC2086 -- Double quote to prevent globbing ...
+- ShellCheck: `$/${}` is unnecessary on arithmetic variables.: https://www.shellcheck.net/wiki/SC2004 -- $/${} is unnecessary on arithmeti...
+- https://stackoverflow.com/questions/3298866/how-can-a-shell-script-control-another-script
+- https://tldp.org/LDP/abs/html/extmisc.html#MKFIFOREF
+- 16.9. Miscellaneous Commands: mkfifo: https://tldp.org/LDP/abs/html/extmisc.html#MKFIFOREF
+- https://duckduckgo.com/?q=named+pipes+shell+two+scripts&ia=web
+- https://linuxconfig.org/introduction-to-named-pipes-on-bash-shell
+- https://stackoverflow.com/questions/32497732/give-output-of-one-shell-script-as-input-to-another-using-named-pipes
+- https://duckduckgo.com/?q=stderr+redirect+2%3E%261+must+be+last&ia=web
+- https://csatlas.com/bash-redirect-stdout-stderr/#order_matters
+- https://unix.stackexchange.com/questions/631208/when-redirecting-both-stdout-and-stderr-to-a-file-why-must-the-redirection-of-s
 
 ## Command Prompt
 

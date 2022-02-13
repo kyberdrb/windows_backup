@@ -6,8 +6,6 @@ ESTIMATED_BACKUP_SIZE_IN_KB="$1"
 
 BACKUP_DIR="$2"
 
-LOG_FILE="$3"
-
 # Capture signals with 'trap'. POSIX standard ommits the leading 'SIG' - the name of the interrupt is sufficient
 # - SIGTERM/TERM (kill)
 #   - default signal for 'kill'. I assume this would be sufficient for simplicity, readability reasons.
@@ -71,8 +69,11 @@ main() {
       percent_completed_message="${percent_completed}%% completed"
       amount_of_backed_up_data="$current_amount_of_backed_up_data_in_kb/${ESTIMATED_BACKUP_SIZE_IN_KB}"
       
-      # TODO test currently backed up file?
-      currently_backed_up_file="$(tail --lines=1 "${LOG_FILE}" | tr --delete '\r')"
+      currently_backed_up_file=""
+      # check for file presence for standalone testing
+      if [ -f "/tmp/currently_backed_up_file.txt" ]; then
+        currently_backed_up_file="$(cat < /tmp/currently_backed_up_file.txt)"
+      fi
 
       if [ "${CONTINUE_EXECUTION_OF_SCRIPT}" = "false" ]
       then
@@ -85,7 +86,6 @@ main() {
       fi
     fi
 
-    # TODO add currently backed up file - with 'tail -n 1 $LOG_FILE' ?
     progress_message="${animation_step}    ${percent_completed_message}    ${amount_of_backed_up_data}    ${currently_backed_up_file}"
     
     printf -- "%s\r" "${progress_message}"
