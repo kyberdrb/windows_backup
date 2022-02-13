@@ -137,7 +137,7 @@ check_free_space() {
 generate_files_and_dirs_list() {
   # generate source file list
   # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-  <"${TMP_DIR}/backup_source_paths.tmp" xargs -I "{}" sh -c "find "{}" >> "${TMP_DIR}/source_files_and_dirs_paths.tmp"
+  <"${TMP_DIR}/backup_source_paths.tmp" xargs -I % sh -c "find "%" >> "${TMP_DIR}/source_files_and_dirs_paths.tmp""
 
   # generate destination file list
   cut -d'/' -f2 --complement "${TMP_DIR}/source_files_and_dirs_paths.tmp" | cut -d'/' -f2 --complement | sed "s:^:${BACKUP_DIR}:g" > "${TMP_DIR}/destination_files_and_dirs_paths.tmp"
@@ -195,21 +195,23 @@ backup_files_and_folders() {
     # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
     #cp --verbose --force --preserve=mode,ownership,timestamps "${source_file}" "${destination_file}" >> "${LOG_FILE}" 2>&1
   done
-
-  kill $ANIMATION_PID 2>/dev/null
-  wait $ANIMATION_PID 2>/dev/null
-  
+ 
   echo >> "${LOG_FILE}"
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - End Time" >> "${LOG_FILE}"
 }
 
 finalize_backup() {
+  # TODO extract into separate function 'stop_background_processes'
+  kill $ANIMATION_PID 2>/dev/null
+  wait $ANIMATION_PID 2>/dev/null
+
   kill $SHUTDOWNGUARD_PID 2>/dev/null
   wait $SHUTDOWNGUARD_PID 2>/dev/null
 
   SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
-  taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 2>&1 1>/dev/null
-  tskill "${SHUTDOWNGUARD_WINPID}" 2>&1 1>/dev/null
+  taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
+  tskill "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
+  # END OF FUNCTION
 
   printf "¤ Backup complete\n"
   
@@ -230,6 +232,7 @@ trap handle_Ctrl_C_interrupt INT
 
 # For usual script termination
 handle_default_kill() {
+  # TODO extract into separate function 'stop_background_processes'
   kill $ANIMATION_PID 2>/dev/null
   wait $ANIMATION_PID 2>/dev/null
   
@@ -237,8 +240,9 @@ handle_default_kill() {
   wait $SHUTDOWNGUARD_PID 2>/dev/null
   
   SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
-  taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 2>&1 1>nul
-  tskill "${SHUTDOWNGUARD_WINPID}" 2>&1 1>/dev/null
+  taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
+  tskill "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
+  # END OF FUNCTION
 
   printf "Backup exitted prematurely"
   exit 1
