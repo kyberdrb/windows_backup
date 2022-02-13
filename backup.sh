@@ -185,21 +185,23 @@ backup_files_and_folders() {
   paste "${TMP_DIR}/source_files_and_dirs_paths.tmp" "${TMP_DIR}/destination_files_and_dirs_paths.tmp" | while read -r source_file destination_file
   do
     # THIS COMMAND CAN BE TIME-CONSUMING AND MAKE A LOT OF OUTPUT IN THE TERMINAL. Comment out for faster and more readable debugging/execution.
-    printf "%s\n%s\n\n" "${source_file}" "${destination_file}"
-    sleep 5
+    #printf "%s\n%s\n" "${source_file}" "${destination_file}"
+    #sleep 5
 
-    #if [ -d "${TMP_DIR}/source_files_and_dirs_paths.tmp" ]; then
-    #  mkdir --parents "${directory_path_from_destination_paths_file}" >> "${LOG_FILE}" 2>&1
-    #fi
+    if [ -d "${TMP_DIR}/source_files_and_dirs_paths.tmp" ]; then
+      mkdir --parents "${directory_path_from_destination_paths_file}" >> "${LOG_FILE}" 2>&1
+    fi
 
     # Send the busy-animation the path to currently copied file...
-    #   - try first whether the log file will be refreshed after every append of currently copied file to test file flushing in shell script
-    #   - when it doesn't refresh every time, remove the reading of last log line in busy-animation and send the file path to busy-animation through named pipe?
-    #   - do a perl script that will open the log file, log the copied source file, flush and close the log file and then let the busy-script to read the last line of the log file which contains the path of the last copied file
+    #   - SKIP - try first whether the log file will be refreshed after every append of currently copied file to test file flushing in shell script
+    #   - SKIP - when it doesn't refresh every time, remove the reading of last log line in busy-animation and send the file path to busy-animation through named pipe?
+    #   - SKIP - do a perl script that will open the log file, log the copied source file, flush and close the log file and then let the busy-script to read the last line of the log file which contains the path of the last copied file
+    #   - DONE :) - the busy animation reads a path to currently copied file from tmpfs file
 
     # Save currently copied file to tmpfs (RAM) to spare SSD/HDD storage for longevity and speed
     # TODO replace the file path with a variable
-    printf "%s\n" "${source_file}" > "/tmp/currently_backed_up_file.txt"
+    #printf "%s\n" "${source_file}" > "/tmp/currently_backed_up_file.txt"
+    printf "%s" "${source_file}" > "/tmp/currently_backed_up_file.txt"
 
     # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
     #cp --verbose --force --preserve=mode,ownership,timestamps "${source_file}" "${destination_file}" >> "${LOG_FILE}" 2>&1
