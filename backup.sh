@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -x
+
 SCRIPT_DIR="$(dirname "$(readlink --canonicalize "$0")")"
 LOG_DIR="${SCRIPT_DIR}/logs"
 
@@ -119,39 +121,74 @@ estimate_backup_size() {
 }
 
 check_free_space() {
-  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Check sufficient free space on the backup drive - Start Time" >> "${LOG_FILE}"
+  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimate Backup Time - Start Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
+
+  printf "\n"
+  printf "%s\n" "¤ Checking free space"
+  
+  "${SCRIPT_DIR}"/utils/busy-animation.sh &
+  ANIMATION_PID="$!"
 
   linux_style_backup_disk_mountpoint_of_backup_dir_in_git_bash_in_windows="$(echo "${BACKUP_DIR}" | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]'):"
   free_space_on_disk_with_backup_dir_at_start=$(df | grep "${linux_style_backup_disk_mountpoint_of_backup_dir_in_git_bash_in_windows}" | tr -s '[:space:]' | cut -d ' ' -f 4)
+
+  printf "%s\n" "    - Estimated backup size: ${ESTIMATED_BACKUP_SIZE_IN_KB} KB"
+  printf "%s\n" "    - Free space on backup drive: ${free_space_on_disk_with_backup_dir_at_start} KB"
+
   if [ $free_space_on_disk_with_backup_dir_at_start -lt $ESTIMATED_BACKUP_SIZE_IN_KB ]
   then
     echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Check sufficient free space on the backup drive - HALT: Backup size is larger than the free space on the backup drive - End Time" >> "${LOG_FILE}"
+
+    printf "%s\n" "     - The backup needs more space on the backup drive."
+
+    kill $ANIMATION_PID
+    wait $ANIMATION_PID 2>/dev/null
+
     exit 1
   fi
   
+  kill $ANIMATION_PID
+  wait $ANIMATION_PID 2>/dev/null
+
+  printf "%s\n" "    - Enough space for backup on the backup drive. Proceeding..."
+
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Check sufficient free space on the backup drive - PASS: Enough free space available for backup on the backup drive - continuing... - End Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
 }
 
 generate_files_and_dirs_list() {
+  echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimate Backup Time - Start Time" >> "${LOG_FILE}"
+  echo >> "${LOG_FILE}"
+
+  printf "\n"
+  printf "%s\n" "¤ Generating source and destination file lists."
+  
+  "${SCRIPT_DIR}"/utils/busy-animation.sh &
+  ANIMATION_PID="$!"
+
   # generate source file list
   # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-  <"${TMP_DIR}/backup_source_paths.tmp" xargs -I % sh -c "find "%" >> "${TMP_DIR}/source_files_and_dirs_paths.tmp""
+  <"${TMP_DIR}/backup_source_paths.tmp" xargs -I % sh -c "find "%" >> "${TMP_DIR}/source_files_and_dirs_paths.tmp" 2>/dev/null"
 
   # generate destination file list
   cut -d'/' -f2 --complement "${TMP_DIR}/source_files_and_dirs_paths.tmp" | cut -d'/' -f2 --complement | sed "s:^:${BACKUP_DIR}:g" > "${TMP_DIR}/destination_files_and_dirs_paths.tmp"
+
+  kill $ANIMATION_PID
+  wait $ANIMATION_PID 2>/dev/null
+
+  printf "%s\n" "File lists generated."
 }
 
 estimate_backup_duration() {
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimate Backup Duration - Start Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
 
-  printf "¤ Backing up files\n"
+  printf "%s\n" "¤ Estimating backup duration"
   
-  echo "Prosim, nechaj pocitac zapnuty, zalohuju sa subory"
-  echo
-  
+  "${SCRIPT_DIR}"/utils/busy-animation.sh &
+  ANIMATION_PID="$!"
+
   number_of_logs="$(find "${LOG_DIR}" -type f | wc -l)"
   
   # TODO make the estimation of backup time more robust by looking for the latest log file with completed and successful backup
@@ -162,12 +199,19 @@ estimate_backup_duration() {
     end_timestamp=$(tail -n 2 "${forelast_backup_log}" | tr -d '\n' | cut -d ':' -f1)
     duration_of_last_backup_in_seconds=$(( end_timestamp - start_timestamp ))
     duration_of_last_backup_in_seconds_in_human_readable_format=$(date -d@${duration_of_last_backup_in_seconds} -u "+%-k hod. %M minut")
-    echo "Posledna zaloha trvala ${duration_of_last_backup_in_seconds_in_human_readable_format}"
+
+    kill $ANIMATION_PID
+    wait $ANIMATION_PID 2>/dev/null
+
+    printf "%s\n" "    - Posledna zaloha trvala ${duration_of_last_backup_in_seconds_in_human_readable_format}"
 
     estimated_backup_finish_time=$(date -d "${duration_of_last_backup_in_seconds} seconds" +"%H:%M")
-    echo "Zalohovanie bude trvat priblizne 'do' ${estimated_backup_finish_time}"
+    echo "    - Zalohovanie bude trvat priblizne 'do' ${estimated_backup_finish_time}"
     echo
   fi
+
+  kill $ANIMATION_PID
+  wait $ANIMATION_PID 2>/dev/null
 
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimate Backup Duration - End Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
@@ -275,15 +319,16 @@ main() {
   show_info_message
   clean_temp_files
   clean_backup_directory
+
   estimate_backup_size
 
   # TODO test function check_free_space to check whether the backup drive has enough free space to carry the entire backup
   check_free_space
 
-  estimate_backup_duration
-
   # TODO test function generate_files_and_dirs_list to check whether the source and destination paths are valid
   generate_files_and_dirs_list
+
+  estimate_backup_duration
 
   backup_files_and_folders
   finalize_backup
