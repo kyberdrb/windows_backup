@@ -4,7 +4,7 @@
 
 ESTIMATED_BACKUP_SIZE_IN_KB="$1"
 
-BACKUP_DIR="$2"
+DISK_WITH_BACKUP_DIR_IN_GIT_BASH_IN_WINDOWS="$2"
 
 # Capture signals with 'trap'. POSIX standard ommits the leading 'SIG' - the name of the interrupt is sufficient
 # - SIGTERM/TERM (kill)
@@ -34,7 +34,7 @@ handle_Ctrl_C_interrupt() {
 clear_current_line() {  
   starting_character_number=1
   current_character_number=$starting_character_number
-  terminal_width=$( stty --file=/dev/tty size | cut -d' ' -f2 2>/dev/null)
+  terminal_width=$(stty --file=/dev/tty size | cut -d' ' -f2 2>/dev/null)
   while [ $current_character_number -le $terminal_width ]
   do
     printf " "
@@ -51,28 +51,35 @@ main() {
   index_of_next_step=$first_step_index
   number_of_steps=4
   
-  disk_with_backup_dir_in_git_bash_in_windows="$(echo "${BACKUP_DIR}" | cut -d '/' -f 2 | tr '[:lower:]' '[:upper:]'):"
-  used_space_on_disk_with_backup_dir_at_start=$(df | grep "${disk_with_backup_dir_in_git_bash_in_windows}" | tr -s ' ' | cut -d ' ' -f3)
+  used_space_on_disk_with_backup_dir_at_start=$(df | grep --ignore-case "${DISK_WITH_BACKUP_DIR_IN_GIT_BASH_IN_WINDOWS}" | tr -s ' ' | cut -d ' ' -f3)
 
   while true
   do
     progress_message=""
     index_of_next_step=$(( 1 + index_of_next_step % number_of_steps ))
-    animation_step=" $(printf -- "%s" "${animation_steps}" | cut -d ':' -f "${index_of_next_step}")"
+    animation_step=" $(printf -- "%s" "${animation_steps}" | cut -d ':' -f "${index_of_next_step}")   "
 
     if [ -n "${ESTIMATED_BACKUP_SIZE_IN_KB}" ]
     then
-      current_used_space_on_disk_with_backup_dir=$(df | grep "${disk_with_backup_dir_in_git_bash_in_windows}" | tr -s ' ' | cut -d ' ' -f3)
+      current_used_space_on_disk_with_backup_dir=$(df | grep --ignore-case "${DISK_WITH_BACKUP_DIR_IN_GIT_BASH_IN_WINDOWS}" | tr -s ' ' | cut -d ' ' -f3)
       current_amount_of_backed_up_data_in_kb=$(( current_used_space_on_disk_with_backup_dir - used_space_on_disk_with_backup_dir_at_start ))
 
       percent_completed=$(( current_amount_of_backed_up_data_in_kb * 100 / ESTIMATED_BACKUP_SIZE_IN_KB ))
-      percent_completed_message="${percent_completed}% completed"
-      amount_of_backed_up_data="$current_amount_of_backed_up_data_in_kb/${ESTIMATED_BACKUP_SIZE_IN_KB}"
+      percent_completed_message="${percent_completed}% completed   "
+      amount_of_backed_up_data="$current_amount_of_backed_up_data_in_kb/${ESTIMATED_BACKUP_SIZE_IN_KB}   "
       
       currently_backed_up_file=""
       # check for file presence for standalone testing
       if [ -f "/tmp/currently_backed_up_file.txt" ]; then
-        currently_backed_up_file="$(cat < /tmp/currently_backed_up_file.txt)"
+        currently_backed_up_file="$(cat /tmp/currently_backed_up_file.txt)"
+        
+        terminal_width=$(stty --file=/dev/tty size | cut -d' ' -f2 2>/dev/null)
+        animation_step_str_length="${#animation_step}"
+        percent_completed_message_str_length="${#percent_completed_message}"
+        amount_of_backed_up_data_str_length="${#amount_of_backed_up_data}"
+        
+        space_left_in_terminal_row=$(( terminal_width - animation_step_str_length  - percent_completed_message_str_length - amount_of_backed_up_data_str_length ))
+        currently_backed_up_file_with_truncated_path=${currently_backed_up_file:0:space_left_in_terminal_row}
       fi
 
       if [ "${CONTINUE_EXECUTION_OF_SCRIPT}" = "false" ]
@@ -86,7 +93,7 @@ main() {
       fi
     fi
 
-    progress_message="${animation_step}    ${percent_completed_message}    ${amount_of_backed_up_data}    ${currently_backed_up_file}"
+    progress_message="${animation_step}${percent_completed_message}${amount_of_backed_up_data}${currently_backed_up_file_with_truncated_path}"
     
     printf -- "%s\r" "${progress_message}"
     

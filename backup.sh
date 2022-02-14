@@ -256,7 +256,9 @@ estimate_backup_duration() {
 }
 
 backup_files_and_folders() {
-  "${SCRIPT_DIR}"/utils/busy-animation.sh "${ESTIMATED_BACKUP_SIZE_IN_KB}" "${BACKUP_DIR}" &
+  disk_with_backup_dir_in_git_bash_in_windows="$(echo "${BACKUP_DIR}" | cut -d '/' -f 2):"
+  
+  "${SCRIPT_DIR}"/utils/busy-animation.sh "${ESTIMATED_BACKUP_SIZE_IN_KB}" "${disk_with_backup_dir_in_git_bash_in_windows}" &
   ANIMATION_PID="$!"
   
   {
@@ -274,7 +276,7 @@ backup_files_and_folders() {
     #sleep 5
 
     if [ -d "${TMP_DIR}/source_files_and_dirs_paths.tmp" ]; then
-      mkdir --parents "${directory_path_from_destination_paths_file}" >> "${LOG_FILE}" 2>&1
+      mkdir --parents "${destination_file}" >> "${LOG_FILE}" 2>&1
     fi
 
     # Send the busy-animation the path to currently copied file...
@@ -289,7 +291,7 @@ backup_files_and_folders() {
     printf "%s" "${source_file}" > "/tmp/currently_backed_up_file.txt"
 
     # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-    #cp --verbose --force --preserve=mode,ownership,timestamps "${source_file}" "${destination_file}" >> "${LOG_FILE}" 2>&1
+    cp --verbose --force --preserve=mode,ownership,timestamps "${source_file}" "${destination_file}" >> "${LOG_FILE}" 2>&1
   done < "${TMP_DIR}/source_and_destination_files_and_dirs_paths.tmp"
  
   echo >> "${LOG_FILE}"
@@ -346,7 +348,7 @@ handle_default_kill() {
   rm --force "/tmp/currently_backed_up_file.txt"
   # END OF FUNCTION
 
-  printf "Backup exitted prematurely"
+  printf "%s\n" "Backup exitted prematurely"
   exit 1
 }
 
@@ -363,14 +365,14 @@ main() {
 
   estimate_backup_size
   check_free_space
-
-  # TODO test function generate_files_and_dirs_list to check whether the source and destination paths are valid
   generate_files_and_dirs_list
-
+  
+  # TODO test this function - adjustment are dependent on function backup_files_and_folders - final log line - detection of backup completed time
   #estimate_backup_duration
 
-  #backup_files_and_folders
+  backup_files_and_folders
   #finalize_backup
 }
 
 main
+
