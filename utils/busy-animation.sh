@@ -51,7 +51,7 @@ main() {
   index_of_next_step=$first_step_index
   number_of_steps=4
   
-  used_space_on_disk_with_backup_dir_at_start=$(df | grep --ignore-case "${DISK_WITH_BACKUP_DIR_IN_GIT_BASH_IN_WINDOWS}" | tr -s ' ' | cut -d ' ' -f3)
+  free_space_on_disk_with_backup_dir_at_start=$(df | grep --ignore-case "${DISK_WITH_BACKUP_DIR_IN_GIT_BASH_IN_WINDOWS}" | tr -s ' ' | cut -d ' ' -f4)
 
   while true
   do
@@ -61,8 +61,8 @@ main() {
 
     if [ -n "${ESTIMATED_BACKUP_SIZE_IN_KB}" ]
     then
-      current_used_space_on_disk_with_backup_dir=$(df | grep --ignore-case "${DISK_WITH_BACKUP_DIR_IN_GIT_BASH_IN_WINDOWS}" | tr -s ' ' | cut -d ' ' -f3)
-      current_amount_of_backed_up_data_in_kb=$(( current_used_space_on_disk_with_backup_dir - used_space_on_disk_with_backup_dir_at_start ))
+      current_free_space_on_disk_with_backup_dir=$(df | grep --ignore-case "${DISK_WITH_BACKUP_DIR_IN_GIT_BASH_IN_WINDOWS}" | tr -s ' ' | cut -d ' ' -f4)
+      current_amount_of_backed_up_data_in_kb=$(( free_space_on_disk_with_backup_dir_at_start - current_free_space_on_disk_with_backup_dir ))
 
       percent_completed=$(( current_amount_of_backed_up_data_in_kb * 100 / ESTIMATED_BACKUP_SIZE_IN_KB ))
       percent_completed_message="${percent_completed}% completed   "
@@ -95,7 +95,22 @@ main() {
 
     progress_message="${animation_step}${percent_completed_message}${amount_of_backed_up_data}${currently_backed_up_file_with_truncated_path}"
     
-    printf -- "%s\r" "${progress_message}"
+    printf -- "%s" "${progress_message}"
+    
+    # fill the rest of the line with blank spaces
+    #  to clean residual characters from previous output
+    starting_character_number=1
+    current_character_number=$starting_character_number
+    terminal_width=$(stty --file=/dev/tty size | cut -d' ' -f2 2>/dev/null)
+    progress_message_str_length="${#progress_message}"
+    amount_of_residual_space_in_current_row=$(( terminal_width - progress_message_str_length ))
+    while [ $current_character_number -le $amount_of_residual_space_in_current_row ]
+    do
+      printf " "
+      current_character_number=$(( current_character_number + 1 ))
+    done
+    
+    printf "\r"
     
     delay=0.07
     sleep $delay
@@ -103,4 +118,3 @@ main() {
 }
 
 main
-
