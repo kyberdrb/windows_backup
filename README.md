@@ -157,6 +157,23 @@ https://github.com/shivansh/TCP-IP-Regression-TestSuite/commit/8f1fb4c4f5a96b160
 - https://duckduckgo.com/?q=stderr+redirect+2%3E%261+must+be+last&ia=web
 - https://csatlas.com/bash-redirect-stdout-stderr/#order_matters
 - https://unix.stackexchange.com/questions/631208/when-redirecting-both-stdout-and-stderr-to-a-file-why-must-the-redirection-of-s
+- https://duckduckgo.com/?q=ntfs+path+length+limit&ia=web
+- https://stackoverflow.com/questions/19214179/bash-get-intersection-from-multiple-files/19214329#19214329
+- https://duckduckgo.com/?q=find+print0+xargs+-0&ia=web
+- https://dbrinegar.github.io/2014/12/12/find-xargs/
+- https://duckduckgo.com/?q=xargs+doesnt+handle+properly+null&ia=web
+- https://www.golinuxcloud.com/find-exec-multiple-commands-examples-unix/
+- https://www.gnu.org/software/findutils/manual/html_node/find_html/Unusual-Characters-in-File-Names.html
+- https://stackoverflow.com/questions/19008614/find-files-with-illegal-windows-characters-in-the-name-on-linux
+- https://duckduckgo.com/?q=bash+unary+operator+expected+-lt&ia=web
+- https://debugah.com/solved-shell-script-ge-le-unary-operator-expected-standard_in-1-syntax-error-12747/
+  - check, whether the variable is initialized, e.g. with `set -x` at the beginning of the script
+- https://unix.stackexchange.com/questions/432463/eq-unary-operator-expected-shell-argument-parsing
+- https://duckduckgo.com/?q=shell+script+linux+terminal+substring+variable&ia=web
+- https://www.baeldung.com/linux/bash-substring
+- https://serverfault.com/questions/178101/most-simple-way-of-extracting-substring-in-unix-shell/178104#178104
+- https://duckduckgo.com/?q=find+non+alphanumeric+characters+linux+-0&ia=web
+- https://www.ed.ac.uk/records-management/guidance/records/practical-guidance/naming-conventions/non-ascii-characters
 
 ## Command Prompt
 
