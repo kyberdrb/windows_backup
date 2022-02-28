@@ -1,27 +1,27 @@
 # Windows Backup Script
-
+ 
 Add this tutorial to my repo "Windows_tutorials"
-
+ 
 ## Usage
-
+ 
         cd /path/to/repository/
         ./backup.sh
-
+ 
 The rest will handle the script with the configuration file.
-
+ 
 ## Script description
-
+ 
 Script operations
-
+ 
 1. Clean backup folers listed in configuration
 1. Clean up Windows
 1. Backup folders listed in configuration
 1. Show message that the backup has completed
-
+ 
 ## Task scheduling
-
+ 
 - as current user - without elevated priviledges - priviledges will be requested at runtime
-
+ 
 1. Right click on `My computer -> Manage`. Enter admin password if prompted.
 1. In the left panel navigate to `System Tools -> Task Scheduler -> Task Scheduler Library`
 1. In the right panel click on `Create Task`
@@ -48,14 +48,14 @@ Script operations
         - If the task is already running, then the following rule applies: `Do not start a new instance`
     1. OK
 1. OK
-
+ 
 Test whether the task launches
-
+ 
 ## Syncing between computers
-
+ 
         rm -rf "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)"
         mkdir "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)"
-
+ 
         # TODO pre-commit/pre-add? routine - copying to/from NTFS`<->`ext4 filesystems changes executable permissions
         find . -name *.txt | grep -v ".*\.git\>" | xargs chmod -x
         find . -name *.log | grep -v ".*\.git\>" | xargs chmod -x
@@ -64,15 +64,15 @@ Test whether the task launches
         find . -name *.md | grep -v ".*\.git\>" | xargs chmod -x
         chmod -x .gitignore
         # end of pre-push routine
-
+ 
         rsync --archive --verbose --progress "." "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)" --exclude ".git" --dry-run
-
+ 
 Or one-liner
-
+ 
         rm -rf "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)" && mkdir "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)" && rsync --archive --verbose --progress "." "/run/media/laptop/7E88A51688A4CE49/$(pwd | rev | cut -d '/' -f1 | rev)" --exclude ".git"
-
+ 
 ## Sources - Task Scheduler
-
+ 
 - https://www.windowstricks.in/2018/08/how-to-run-the-powershell-script-in-scheduled-task-with-run-as-administrator.html
 -  https://www.sevenforums.com/tutorials/211758-task-scheduler-create-task-display-message-reminder.html
 - https://stackoverflow.com/questions/11013132/how-can-i-enable-the-windows-server-task-scheduler-history-recording/14651161#14651161
@@ -82,9 +82,9 @@ Or one-liner
 - https://stackoverflow.com/questions/20886243/press-any-key-to-continue/20886446#20886446
 - https://www.dev-tips-and-tricks.com/run-a-node-script-with-windows-task-scheduler
 - https://joshuatz.com/posts/2020/using-windows-task-scheduler-to-automate-nodejs-scripts/
-
+ 
 ## Sources - Shell
-
+ 
 - https://stackoverflow.com/questions/39847496/cp-cannot-create-directory-no-such-file-or-directory
 - https://unix.stackexchange.com/questions/511477/cannot-create-directory-no-such-file-or-directory/511480#511480
 - Execute Bash Script (Using Git Bash) from Windows Task Scheduler
@@ -174,10 +174,33 @@ https://github.com/shivansh/TCP-IP-Regression-TestSuite/commit/8f1fb4c4f5a96b160
 - https://serverfault.com/questions/178101/most-simple-way-of-extracting-substring-in-unix-shell/178104#178104
 - https://duckduckgo.com/?q=find+non+alphanumeric+characters+linux+-0&ia=web
 - https://www.ed.ac.uk/records-management/guidance/records/practical-guidance/naming-conventions/non-ascii-characters
-
+- https://askubuntu.com/questions/76808/how-do-i-use-variables-in-a-sed-command/76842#76842
+- https://stackoverflow.com/questions/17075070/paste-side-by-side-multiple-files-by-numerical-order
+- https://duckduckgo.com/?q=cut+by+tab&ia=web
+- https://unix.stackexchange.com/questions/35369/how-to-define-tab-delimiter-with-cut-in-bash
+- https://unix.stackexchange.com/questions/18886/why-is-while-ifs-read-used-so-often-instead-of-ifs-while-read/18936#18936
+- https://duckduckgo.com/?q=while+read+bash+file&ia=web
+- https://linuxhint.com/while_read_line_bash/
+- https://stackpointer.io/unix/unix-linux-count-occurrences-character-string/531/
+- https://itectec.com/unixlinux/bash-find-and-globbing-and-wildcards/
+- https://www.geeksforgeeks.org/string-manipulation-in-shell-scripting/
+- https://duckduckgo.com/?q=xargs+argument+line+too+long&ia=web&iax=qa
+- https://serverfault.com/questions/496720/xargs-too-long-argument-list
+- https://duckduckgo.com/?q=find+all+files+with+quotes+special+character+linux&ia=web
+- https://www.linux.com/training-tutorials/linux-shell-tip-remove-files-names-contains-spaces-and-special-characters-such/
+- https://stackoverflow.com/questions/19214179/bash-get-intersection-from-multiple-files/19214329#19214329
+- https://duckduckgo.com/?q=git+bash+execute+batch+file&ia=web
+- https://duckduckgo.com/?q=git+bash+taskkill&ia=web
+- https://stackoverflow.com/questions/34981745/taskkill-pid-not-working-in-gitbash
+- https://duckduckgo.com/?q=tskill+git+bash&ia=web
+ 
+Defining function before using/calling the function in shell scripts in this order seems to be important in shell scripts, to ensure safe and predictable execution, and avoid undefined behavior.
+ 
 ## Command Prompt
-
+ 
 - https://www.shellhacks.com/windows-taskkill-kill-process-by-pid-name-port-cmd/
 - https://stackoverflow.com/questions/4507312/how-to-redirect-stderr-to-null-in-cmd-exe#4507627
 - https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-xp/bb490982(v=technet.10)?redirectedfrom=MSDN
-
+- https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/xcopy
+- https://duckduckgo.com/?q=xcopy+%2Fe+%2Fi+%2Ff+%2Fc+%2Fk+%2Fr+%2Fh+%2Fm+%2Fo+%2Fx+%2Fy&ia=web
+ 
