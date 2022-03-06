@@ -52,6 +52,11 @@ main() {
   index_of_next_step=$first_step_index
   number_of_steps=4
  
+  # TODO move free/used space monitoring to the while loop in function 'backup_files_and_folders' in 'backup.sh'
+  #   Here only read a file with 'usedKB;availableKB;percent_completed;currently_backed_up_file' info of the backup drive 
+  #   that the backup.sh will recalculate and overwrite after each copied file
+  #   and the busy-animation will only calculate the next animation step
+  #   which will make the animation smooth, even when copying a file, which looks prettier
   free_space_on_disk_with_backup_dir_at_start=$(df | grep --ignore-case "${DISK_WITH_BACKUP_DIR_IN_GIT_BASH_IN_WINDOWS}" | tr -s ' ' | cut -d ' ' -f4)
  
   while true
@@ -80,7 +85,34 @@ main() {
         amount_of_backed_up_data_str_length="${#amount_of_backed_up_data}"
  
         space_left_in_terminal_row=$(( terminal_width - animation_step_str_length  - percent_completed_message_str_length - amount_of_backed_up_data_str_length ))
-        currently_backed_up_file_with_truncated_path=${currently_backed_up_file:0:space_left_in_terminal_row}
+        
+        # fix refreshing file paths that fit in the terminal width character-wise but not byte-wise
+        #   by truncating them until their byte length fits the terminal width.
+        #   Assumption '1 character = 1 byte' prooves false when displaying localized characters
+        #   and creates newlines instead of refreshing the same line in spite of the '\r' mechanism
+        currently_backed_up_file_with_truncated_path="${currently_backed_up_file}"
+        
+        str_length_of_currently_backed_up_file_path="$(printf "%s" "${currently_backed_up_file}" | wc --chars)"
+        
+        final_str_length_of_currently_backed_up_file_path_with_regard_to_multibyte_characters=$str_length_of_currently_backed_up_file_path
+        
+        byte_length_of_currently_backed_up_file_path="$(printf "%s" "${currently_backed_up_file}" | wc --bytes)"
+        
+        byte_length_of_currently_backed_up_file_path_truncated=$byte_length_of_currently_backed_up_file_path
+        
+        while [ $byte_length_of_currently_backed_up_file_path_truncated -ge $space_left_in_terminal_row ]
+        do
+          # update variable e.g. final_str_length_with_regard_to_multibyte_characters ?
+          final_str_length_of_currently_backed_up_file_path_with_regard_to_multibyte_characters=$(( final_str_length_of_currently_backed_up_file_path_with_regard_to_multibyte_characters - 1 ))
+          
+          # trucate path by 1 character
+          currently_backed_up_file_with_truncated_path=${currently_backed_up_file:0:final_str_length_of_currently_backed_up_file_path_with_regard_to_multibyte_characters}
+          
+          
+          # update the variable by measuring the byte length
+          byte_length_of_currently_backed_up_file_path_truncated="$(printf "%s" "${currently_backed_up_file_with_truncated_path}" | wc --bytes)"
+        done
+        
       fi
  
       if [ "${CONTINUE_EXECUTION_OF_SCRIPT}" = "false" ]
@@ -113,10 +145,10 @@ main() {
  
     printf "\r"
  
-    delay=0.07
-    sleep $delay
+    #delay=0.07
+    #sleep $delay
   done
 }
  
 main
- 
+

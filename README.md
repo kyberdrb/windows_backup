@@ -193,9 +193,19 @@ https://github.com/shivansh/TCP-IP-Regression-TestSuite/commit/8f1fb4c4f5a96b160
 - https://duckduckgo.com/?q=git+bash+taskkill&ia=web
 - https://stackoverflow.com/questions/34981745/taskkill-pid-not-working-in-gitbash
 - https://duckduckgo.com/?q=tskill+git+bash&ia=web
+- https://unix.stackexchange.com/questions/273898/remove-substring-from-front-and-back-of-variable
+- https://stackoverflow.com/questions/17368067/length-of-string-in-bash/17368090#17368090
+- https://duckduckgo.com/?q=xargs+execute+multiple+commands&ia=web&iax=qa
+- https://stackoverflow.com/questions/6958689/running-multiple-commands-with-xargs#6958957
+- https://man.openbsd.org/xargs.1
+- https://www.programmerall.com/article/1764959065/
+- https://www.programmerall.com/article/1764959065/
+- https://unix.stackexchange.com/questions/621327/xargs-use-input-as-command/621331#621331
  
 Defining function before using/calling the function in shell scripts in this order seems to be important in shell scripts, to ensure safe and predictable execution, and avoid undefined behavior.
  
+- https://duckduckgo.com/?q=git+diff+without+scrolling&ia=web&iax=qa
+
 ## Command Prompt
  
 - https://www.shellhacks.com/windows-taskkill-kill-process-by-pid-name-port-cmd/
@@ -203,4 +213,5 @@ Defining function before using/calling the function in shell scripts in this ord
 - https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-xp/bb490982(v=technet.10)?redirectedfrom=MSDN
 - https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/xcopy
 - https://duckduckgo.com/?q=xcopy+%2Fe+%2Fi+%2Ff+%2Fc+%2Fk+%2Fr+%2Fh+%2Fm+%2Fo+%2Fx+%2Fy&ia=web
+- https://duckduckgo.com/?q=ntfs+path+length+limit&ia=web
  

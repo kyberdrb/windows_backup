@@ -10,12 +10,27 @@ DATE_AND_TIME_FOR_FILENAME=$(date "+%Y_%m_%d-%H_%M_%S")
 LOG_FILE="${LOG_DIR}/backup-${DATE_AND_TIME_FOR_FILENAME}.log"
  
 TMP_DIR="${SCRIPT_DIR}/tmp"
+BACKUP_DIR="empty"
+FILE_WITH_CURRENTLY_COPIED_FILE="/tmp/currently_backed_up_file.txt"
  
 SHUTDOWNGUARD_PID=0
 ANIMATION_PID=0
  
 ESTIMATED_BACKUP_SIZE_IN_KB=0
+
+clear_current_line() {  
+  starting_character_number=1
+  current_character_number=$starting_character_number
+  terminal_width=$(stty --file=/dev/tty size | cut -d' ' -f2 2>/dev/null)
+  while [ $current_character_number -le $terminal_width ]
+  do
+    printf " "
+    current_character_number=$(( current_character_number + 1 ))
+  done
  
+  printf "\r"
+}
+
 is_backup_drive_mounted() {
   # at first, clean configuration file from carriage return characters
   #  to prevent (surprising and confusing) error messages
@@ -63,9 +78,8 @@ clean_temp_files() {
   mkdir --parents "${LOG_DIR}"
  
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Cleanup - Start Time" >> "${LOG_FILE}" 2>&1
- 
-  # TODO extract path into global variable - file created on tmpfs
-  rm --force "/tmp/currently_backed_up_file.txt"
+  
+  rm --force "${FILE_WITH_CURRENTLY_COPIED_FILE}"
  
   {
   echo
@@ -78,30 +92,41 @@ clean_temp_files() {
   printf "%s\n" "¤ Cleaning temporary files"
  
   # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
+  # TODO uncomment cleaning up of temporary files in Windows when done debugging and testing
   #"${SCRIPT_DIR}/utils/windows_cleaner/windows_cleaner-clean.sh"
   echo
 }
  
 clean_backup_directory() {
   printf "¤ Cleaning backup directory\n"
- 
+  
   "${SCRIPT_DIR}"/utils/busy-animation.sh &
   ANIMATION_PID="$!"
+  
+  echo >> "${LOG_FILE}" 2>&1
  
   # THIS COMMAND CAN BE DESTRUCTIVE. Comment out for safer debugging/execution
-  grep -v '^[[:space:]]*$' backup.conf | tr -d '\r' > "${TMP_DIR}/backup.conf.cleansed.tmp"
+  grep -v '^[[:space:]]*$' "${SCRIPT_DIR}/backup.conf" | tr -d '\r' > "${TMP_DIR}/backup.conf.cleansed.tmp"
  
   # THIS COMMAND CAN BE DESTRUCTIVE. Comment out for safer debugging/execution
   tail -n +2 "${TMP_DIR}/backup.conf.cleansed.tmp" > "${TMP_DIR}/backup_source_paths.tmp"
  
   # THIS COMMAND CAN BE DESTRUCTIVE. Comment out for safer debugging/execution
   tail -n +2 "${TMP_DIR}/backup.conf.cleansed.tmp" | cut -d'/' -f2 --complement | sed "s:^:${BACKUP_DIR}:g" > "${TMP_DIR}/backup_destination_paths.tmp"
- 
-  # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-  <"${TMP_DIR}/backup_destination_paths.tmp" xargs -I "{}" rm --verbose --recursive --force "{}" >> "${LOG_FILE}"
+  
+  while IFS= read -r line
+  do
+    destination_file_or_directory="${line}"
+    
+    # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
+    # TODO uncomment cleaning up of backed up files on the backup dir when done debugging and testing
+    rm --verbose --recursive --force "${destination_file_or_directory}"
+    "${SCRIPT_DIR}/utils/delete_empty_directories_upwards.sh" "${destination_file_or_directory}"
+  done < "${TMP_DIR}/backup_destination_paths.tmp" >> "${LOG_FILE}" 2>&1
  
   kill $ANIMATION_PID
   wait $ANIMATION_PID 2>/dev/null
+  clear_current_line
  
   {
   echo
@@ -126,14 +151,17 @@ estimate_backup_size() {
  
   # compute new directory sizes
   # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
+  # TODO uncomment the computation of ESTIMATED_BACKUP_SIZE_IN_KB when done debugging and testing
   #<"${TMP_DIR}/backup_source_paths.tmp" xargs -I "{}" sh -c "du --summarize ""{}"" 2>/dev/null | tr '\t' '#' | cut -d'#' -f1 >> ""${TMP_DIR}/estimated_backed_up_directory_sizes.tmp"""
   arithmetic_expression="$(paste --serial --delimiters=+ "${TMP_DIR}/estimated_backed_up_directory_sizes.tmp")"
   ESTIMATED_BACKUP_SIZE_IN_KB="$((arithmetic_expression))"
  
+  # TODO remove fixed ESTIMATED_BACKUP_SIZE_IN_KB when done debugging and testing
   ESTIMATED_BACKUP_SIZE_IN_KB="208608393"
  
   kill $ANIMATION_PID
   wait $ANIMATION_PID 2>/dev/null
+  clear_current_line
  
   echo "  • Estimated backup size:      $ESTIMATED_BACKUP_SIZE_IN_KB kB"
  
@@ -168,6 +196,7 @@ check_free_space() {
  
     kill $ANIMATION_PID
     wait $ANIMATION_PID 2>/dev/null
+    clear_current_line
  
     kill $SHUTDOWNGUARD_PID 2>/dev/null
     wait $SHUTDOWNGUARD_PID 2>/dev/null
@@ -175,15 +204,15 @@ check_free_space() {
     SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
     taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
     tskill "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
- 
-    # TODO replace the file path with a variable
-    rm --force "/tmp/currently_backed_up_file.txt"
+    
+    rm --force "${FILE_WITH_CURRENTLY_COPIED_FILE}"
  
     exit 1
   fi
  
   kill $ANIMATION_PID
   wait $ANIMATION_PID 2>/dev/null
+  clear_current_line
  
   printf "%s\n" "  • Enough space for backup on the backup drive. Proceeding..."
  
@@ -198,64 +227,14 @@ generate_files_and_dirs_list() {
   printf "\n"
   printf "%s\n" "¤ Generating source and destination file lists."
  
-  printf "%s\n" "  • generate source list of paths"
- 
   "${SCRIPT_DIR}"/utils/busy-animation.sh &
   ANIMATION_PID="$!"
  
-  # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-  <"${TMP_DIR}/backup_source_paths.tmp" xargs -I "{}" sh -c "find "{}" >> "${TMP_DIR}/source_files_and_dirs_paths.tmp" 2>/dev/null"
+  paste --delimiter=';' "${TMP_DIR}/backup_source_paths.tmp" "${TMP_DIR}/backup_destination_paths.tmp" > "${TMP_DIR}/backup_source_and_destination_paths.tmp"
  
   kill $ANIMATION_PID
   wait $ANIMATION_PID 2>/dev/null
- 
-  printf "%s\n" "  • generate destination list of paths"
- 
-  "${SCRIPT_DIR}"/utils/busy-animation.sh &
-  ANIMATION_PID="$!"
- 
-  # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-  cut -d'/' -f2 --complement "${TMP_DIR}/source_files_and_dirs_paths.tmp" | sed "s:^:${BACKUP_DIR}:g" > "${TMP_DIR}/destination_files_and_dirs_paths.tmp"
- 
-  kill $ANIMATION_PID
-  wait $ANIMATION_PID 2>/dev/null
- 
-  printf "%s\n" "  • generate combined list of paths"
- 
-  "${SCRIPT_DIR}"/utils/busy-animation.sh &
-  ANIMATION_PID="$!"
- 
-  # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-  paste --delimiter=';' "${TMP_DIR}/source_files_and_dirs_paths.tmp" "${TMP_DIR}/destination_files_and_dirs_paths.tmp" > "${TMP_DIR}/source_and_destination_files_and_dirs_paths.tmp"
- 
-  kill $ANIMATION_PID
-  wait $ANIMATION_PID 2>/dev/null
- 
-  # Generate source list of paths just for directories in order to create a directory structure
-  #  to prevent error message 'No such file or directory' when copying/backing up files
-  #  to destination backup directory
-  printf "%s\n" "  • generate source list of paths for directories only"
- 
-  "${SCRIPT_DIR}"/utils/busy-animation.sh &
-  ANIMATION_PID="$!"
- 
-  # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-  # TODO notify user in the log file for unusual filenames with non-alphanumeric characters (except dash '-', underscore '_' and some others...)
-  <"${TMP_DIR}/backup_source_paths.tmp" xargs -I "{}" sh -c "find "{}" -type d > "${TMP_DIR}/backup_source_dirs.tmp" 2>/dev/null"
- 
-  kill $ANIMATION_PID
-  wait $ANIMATION_PID 2>/dev/null
- 
-  printf "%s\n" "  • generate destination list of path for directories only"
- 
-  "${SCRIPT_DIR}"/utils/busy-animation.sh &
-  ANIMATION_PID="$!"
- 
-  # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-  cut --delimiter='/' --fields=2 --complement "${TMP_DIR}/backup_source_dirs.tmp" | sed "s:^:${BACKUP_DIR}:g" > "${TMP_DIR}/backup_destination_dirs.tmp" 2>/dev/null
- 
-  kill $ANIMATION_PID
-  wait $ANIMATION_PID 2>/dev/null
+  clear_current_line
 }
  
 estimate_backup_duration() {
@@ -278,15 +257,13 @@ estimate_backup_duration() {
  
   kill $ANIMATION_PID
   wait $ANIMATION_PID 2>/dev/null
+  clear_current_line
  
   if [ -n "$latest_complete_backup_log" ]
   then
     start_timestamp=$(head -n 1 "${latest_complete_backup_log}" | cut -d ':' -f1)
     end_timestamp=$(tail -n 2 "${latest_complete_backup_log}" | tr -d '\n' | cut -d ':' -f1)
     duration_of_last_backup_in_seconds=$(( end_timestamp - start_timestamp ))
- 
-    # TODO remove
-    #duration_of_last_backup_in_seconds="9876"
  
     duration_of_last_backup_in_seconds_in_human_readable_format=$(date -d@${duration_of_last_backup_in_seconds} -u "+%-k hod. %M minut")
  
@@ -300,58 +277,46 @@ estimate_backup_duration() {
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimate Backup Duration - End Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
 }
- 
+
 backup_files_and_folders() {
-  printf "\n"
   printf "%s\n" "¤ Back up files and folders"
  
   disk_with_backup_dir_in_git_bash_in_windows="$(echo "${BACKUP_DIR}" | cut -d '/' -f 2):"
- 
-  "${SCRIPT_DIR}"/utils/busy-animation.sh "${ESTIMATED_BACKUP_SIZE_IN_KB}" "${disk_with_backup_dir_in_git_bash_in_windows}" &
-  ANIMATION_PID="$!"
  
   {
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - Start Time"
   echo
   } >> "${LOG_FILE}"
- 
-  printf "%s\n" "  • Creating mirrorred directory structure on the backup drive"
- 
-  while IFS= read -r line
-  do
-    line_length="${#line}"
-    if [ $line_length -gt 260 ]
-    then
-      echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Dir Path Length Check - This path has ${line_length} characters which is more than 260 characters for file path which probably exceeds the limit of the Win32 API. Consider shortening the names of directories or the file." >> "${LOG_FILE}"
-    fi
- 
-    # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-    mkdir --verbose --parents "${line}" >> "${LOG_FILE}" 2>&1
-  done < "${TMP_DIR}/backup_destination_dirs.tmp"
- 
+
   printf "%s\n" "  • Backing up files..."
- 
+
+  # by iterating each line separately in a loop (instead of xargs)
+  #   we can update the log file with current copying operation after each file
   while IFS= read -r line
   do
-    source_file="$(echo ${line} | cut --delimiter=';' --fields=1)"
-    destination_file="$(echo ${line} | cut --delimiter=';' --fields=2)"
- 
-    # THIS COMMAND CAN BE TIME-CONSUMING AND MAKE A LOT OF OUTPUT IN THE TERMINAL. Comment out for faster and more readable debugging/execution.
-    #printf "%s\n%s\n\n" "${source_file}" "${destination_file}"
-    #sleep 5
- 
-    #if [ -d "${source_file}" ]; then
-    #  mkdir --parents "${destination_file}" >> "${LOG_FILE}" 2>&1
-    #fi
- 
-    #Save currently copied file to tmpfs (RAM) to spare SSD/HDD storage for longevity and speed
-    printf "%s" "${source_file}" > "/tmp/currently_backed_up_file.txt"
- 
+    source_file_or_directory="$(echo ${line} | cut --delimiter=';' --fields=1)"
+    destination_file_or_directory="$(echo ${line} | cut --delimiter=';' --fields=2)"
+    
+    # Save currently copied file to tmpfs (RAM) to spare SSD/HDD storage for longevity and speed
+    #   to pass it for the busy-animation to display
+    printf "%s" "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - Currently backing up: ${source_file_or_directory}" >> "${LOG_FILE}"
+    
+    printf "%s" "${source_file_or_directory}" > "${FILE_WITH_CURRENTLY_COPIED_FILE}"
+    
+    "${SCRIPT_DIR}"/utils/busy-animation.sh "${ESTIMATED_BACKUP_SIZE_IN_KB}" "${disk_with_backup_dir_in_git_bash_in_windows}" &
+    ANIMATION_PID="$!"
+
+    # Creating the directory first on the destination backup prevents the error 'No such file or directory'
+    mkdir --verbose --parents "$(dirname "${destination_file_or_directory}")" >> "${LOG_FILE}" 2>&1
+    
     # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
-    # TODO or use XCOPY utility from Windows instead of cp?
-    cp --verbose --force --preserve=mode,ownership,timestamps "${source_file}" "${destination_file}" >> "${LOG_FILE}" 2>&1
-  done < "${TMP_DIR}/source_and_destination_files_and_dirs_paths.tmp"
- 
+    cp --recursive --force --preserve=mode,ownership,timestamps "${source_file_or_directory}" "${destination_file_or_directory}" 1>/dev/null 2>&1
+    
+    kill $ANIMATION_PID 2>/dev/null
+    wait $ANIMATION_PID 2>/dev/null
+    clear_current_line
+  done < "${TMP_DIR}/backup_source_and_destination_paths.tmp"
+
   echo >> "${LOG_FILE}"
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - End Time" >> "${LOG_FILE}"
 }
@@ -360,6 +325,7 @@ finalize_backup() {
   # TODO extract into separate function 'stop_background_processes'
   kill $ANIMATION_PID 2>/dev/null
   wait $ANIMATION_PID 2>/dev/null
+  clear_current_line
  
   kill $SHUTDOWNGUARD_PID 2>/dev/null
   wait $SHUTDOWNGUARD_PID 2>/dev/null
@@ -367,9 +333,8 @@ finalize_backup() {
   SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
   taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
   tskill "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
- 
-  # TODO replace the file path with a variable
-  rm --force "/tmp/currently_backed_up_file.txt"
+  
+  rm --force "${FILE_WITH_CURRENTLY_COPIED_FILE}"
   # END OF FUNCTION
  
   printf "¤ Backup complete\n"
@@ -394,6 +359,7 @@ handle_default_kill() {
   # TODO extract into separate function 'stop_background_processes'
   kill $ANIMATION_PID 2>/dev/null
   wait $ANIMATION_PID 2>/dev/null
+  clear_current_line
  
   kill $SHUTDOWNGUARD_PID 2>/dev/null
   wait $SHUTDOWNGUARD_PID 2>/dev/null
@@ -401,9 +367,8 @@ handle_default_kill() {
   SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
   taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
   tskill "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
- 
-  # TODO replace the file path with a variable
-  rm --force "/tmp/currently_backed_up_file.txt"
+  
+  rm --force "${FILE_WITH_CURRENTLY_COPIED_FILE}"
   # END OF FUNCTION
  
   printf "%s\n" "Backup exitted prematurely"
@@ -435,4 +400,4 @@ main() {
 }
  
 main
- 
+
