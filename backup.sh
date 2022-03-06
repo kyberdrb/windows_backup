@@ -17,8 +17,8 @@ SHUTDOWNGUARD_PID=0
 ANIMATION_PID=0
  
 ESTIMATED_BACKUP_SIZE_IN_KB=0
-
-clear_current_line() {  
+ 
+clear_current_line() {
   starting_character_number=1
   current_character_number=$starting_character_number
   terminal_width=$(stty --file=/dev/tty size | cut -d' ' -f2 2>/dev/null)
@@ -30,7 +30,7 @@ clear_current_line() {
  
   printf "\r"
 }
-
+ 
 is_backup_drive_mounted() {
   # at first, clean configuration file from carriage return characters
   #  to prevent (surprising and confusing) error messages
@@ -78,7 +78,7 @@ clean_temp_files() {
   mkdir --parents "${LOG_DIR}"
  
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Cleanup - Start Time" >> "${LOG_FILE}" 2>&1
-  
+ 
   rm --force "${FILE_WITH_CURRENTLY_COPIED_FILE}"
  
   {
@@ -93,16 +93,16 @@ clean_temp_files() {
  
   # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
   # TODO uncomment cleaning up of temporary files in Windows when done debugging and testing
-  #"${SCRIPT_DIR}/utils/windows_cleaner/windows_cleaner-clean.sh"
+  "${SCRIPT_DIR}/utils/windows_cleaner/windows_cleaner-clean.sh"
   echo
 }
  
 clean_backup_directory() {
   printf "¤ Cleaning backup directory\n"
-  
+ 
   "${SCRIPT_DIR}"/utils/busy-animation.sh &
   ANIMATION_PID="$!"
-  
+ 
   echo >> "${LOG_FILE}" 2>&1
  
   # THIS COMMAND CAN BE DESTRUCTIVE. Comment out for safer debugging/execution
@@ -113,11 +113,11 @@ clean_backup_directory() {
  
   # THIS COMMAND CAN BE DESTRUCTIVE. Comment out for safer debugging/execution
   tail -n +2 "${TMP_DIR}/backup.conf.cleansed.tmp" | cut -d'/' -f2 --complement | sed "s:^:${BACKUP_DIR}:g" > "${TMP_DIR}/backup_destination_paths.tmp"
-  
+ 
   while IFS= read -r line
   do
     destination_file_or_directory="${line}"
-    
+ 
     # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
     # TODO uncomment cleaning up of backed up files on the backup dir when done debugging and testing
     rm --verbose --recursive --force "${destination_file_or_directory}"
@@ -152,12 +152,12 @@ estimate_backup_size() {
   # compute new directory sizes
   # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
   # TODO uncomment the computation of ESTIMATED_BACKUP_SIZE_IN_KB when done debugging and testing
-  #<"${TMP_DIR}/backup_source_paths.tmp" xargs -I "{}" sh -c "du --summarize ""{}"" 2>/dev/null | tr '\t' '#' | cut -d'#' -f1 >> ""${TMP_DIR}/estimated_backed_up_directory_sizes.tmp"""
+  <"${TMP_DIR}/backup_source_paths.tmp" xargs -I "{}" sh -c "du --summarize ""{}"" 2>/dev/null | tr '\t' '#' | cut -d'#' -f1 >> ""${TMP_DIR}/estimated_backed_up_directory_sizes.tmp"""
   arithmetic_expression="$(paste --serial --delimiters=+ "${TMP_DIR}/estimated_backed_up_directory_sizes.tmp")"
   ESTIMATED_BACKUP_SIZE_IN_KB="$((arithmetic_expression))"
  
   # TODO remove fixed ESTIMATED_BACKUP_SIZE_IN_KB when done debugging and testing
-  ESTIMATED_BACKUP_SIZE_IN_KB="208608393"
+  #ESTIMATED_BACKUP_SIZE_IN_KB="208608393"
  
   kill $ANIMATION_PID
   wait $ANIMATION_PID 2>/dev/null
@@ -204,7 +204,7 @@ check_free_space() {
     SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
     taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
     tskill "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
-    
+ 
     rm --force "${FILE_WITH_CURRENTLY_COPIED_FILE}"
  
     exit 1
@@ -277,7 +277,7 @@ estimate_backup_duration() {
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Estimate Backup Duration - End Time" >> "${LOG_FILE}"
   echo >> "${LOG_FILE}"
 }
-
+ 
 backup_files_and_folders() {
   printf "%s\n" "¤ Back up files and folders"
  
@@ -287,36 +287,36 @@ backup_files_and_folders() {
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - Start Time"
   echo
   } >> "${LOG_FILE}"
-
+ 
   printf "%s\n" "  • Backing up files..."
-
+ 
   # by iterating each line separately in a loop (instead of xargs)
   #   we can update the log file with current copying operation after each file
   while IFS= read -r line
   do
     source_file_or_directory="$(echo ${line} | cut --delimiter=';' --fields=1)"
     destination_file_or_directory="$(echo ${line} | cut --delimiter=';' --fields=2)"
-    
+ 
     # Save currently copied file to tmpfs (RAM) to spare SSD/HDD storage for longevity and speed
     #   to pass it for the busy-animation to display
-    printf "%s" "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - Currently backing up: ${source_file_or_directory}" >> "${LOG_FILE}"
-    
+    printf "%s\n" "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - Currently backing up: ${source_file_or_directory}" >> "${LOG_FILE}"
+ 
     printf "%s" "${source_file_or_directory}" > "${FILE_WITH_CURRENTLY_COPIED_FILE}"
-    
+ 
     "${SCRIPT_DIR}"/utils/busy-animation.sh "${ESTIMATED_BACKUP_SIZE_IN_KB}" "${disk_with_backup_dir_in_git_bash_in_windows}" &
     ANIMATION_PID="$!"
-
+ 
     # Creating the directory first on the destination backup prevents the error 'No such file or directory'
     mkdir --verbose --parents "$(dirname "${destination_file_or_directory}")" >> "${LOG_FILE}" 2>&1
-    
+ 
     # THIS COMMAND CAN BE TIME-CONSUMING. Comment out for faster debugging/execution
     cp --recursive --force --preserve=mode,ownership,timestamps "${source_file_or_directory}" "${destination_file_or_directory}" 1>/dev/null 2>&1
-    
+ 
     kill $ANIMATION_PID 2>/dev/null
     wait $ANIMATION_PID 2>/dev/null
     clear_current_line
   done < "${TMP_DIR}/backup_source_and_destination_paths.tmp"
-
+ 
   echo >> "${LOG_FILE}"
   echo "$(date "+%s"):$(date "+%Y/%m/%d %H:%M:%S") - LOG_BACKUP_INFO - Backup Files And Folders - End Time" >> "${LOG_FILE}"
 }
@@ -333,7 +333,7 @@ finalize_backup() {
   SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
   taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
   tskill "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
-  
+ 
   rm --force "${FILE_WITH_CURRENTLY_COPIED_FILE}"
   # END OF FUNCTION
  
@@ -367,7 +367,7 @@ handle_default_kill() {
   SHUTDOWNGUARD_WINPID="$(ps --windows | grep ShutdownGuard | tr -s ' ' | cut -d ' ' -f5)"
   taskkill //F //PID "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
   tskill "${SHUTDOWNGUARD_WINPID}" 1>/dev/null 2>&1
-  
+ 
   rm --force "${FILE_WITH_CURRENTLY_COPIED_FILE}"
   # END OF FUNCTION
  
@@ -400,4 +400,4 @@ main() {
 }
  
 main
-
+ 
