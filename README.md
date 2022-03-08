@@ -193,19 +193,23 @@ https://github.com/shivansh/TCP-IP-Regression-TestSuite/commit/8f1fb4c4f5a96b160
 - https://duckduckgo.com/?q=git+bash+taskkill&ia=web
 - https://stackoverflow.com/questions/34981745/taskkill-pid-not-working-in-gitbash
 - https://duckduckgo.com/?q=tskill+git+bash&ia=web
-- https://unix.stackexchange.com/questions/273898/remove-substring-from-front-and-back-of-variable
-- https://stackoverflow.com/questions/17368067/length-of-string-in-bash/17368090#17368090
-- https://duckduckgo.com/?q=xargs+execute+multiple+commands&ia=web&iax=qa
+- https://duckduckgo.com/?q=cp+copy+only+directory+without+files&ia=web
+- https://stackoverflow.com/questions/4073969/copy-folder-structure-without-files-from-one-location-to-another/4073992#4073992
+- https://stackoverflow.com/questions/4073969/copy-folder-structure-without-files-from-one-location-to-another/4073999#4073999
+- https://duckduckgo.com/?q=cp+copy+file+even+when+the+destination+directory+doesnt+not+exist&ia=web
+- https://devblogs.microsoft.com/oldnewthing/20141031-00/?p=43723
+- https://duckduckgo.com/?q=bash+variable+expansion+substring+longest&ia=web
+- https://duckduckgo.com/?q=bash+longest+match+variable+substring&ia=web
+- https://www.thegeekstuff.com/2010/07/bash-string-manipulation/
 - https://stackoverflow.com/questions/6958689/running-multiple-commands-with-xargs#6958957
+- https://www.computerhope.com/unix/urmdir.htm
+- https://superuser.com/questions/455723/is-there-an-upwards-find
 - https://man.openbsd.org/xargs.1
-- https://www.programmerall.com/article/1764959065/
-- https://www.programmerall.com/article/1764959065/
-- https://unix.stackexchange.com/questions/621327/xargs-use-input-as-command/621331#621331
+- https://stackoverflow.com/questions/15430877/bash-xargs-passing-variable/15434248#15434248
+- https://www.systutorials.com/how-to-unexport-an-exported-variable-in-bash-on-linux/
  
 Defining function before using/calling the function in shell scripts in this order seems to be important in shell scripts, to ensure safe and predictable execution, and avoid undefined behavior.
  
-- https://duckduckgo.com/?q=git+diff+without+scrolling&ia=web&iax=qa
-
 ## Command Prompt
  
 - https://www.shellhacks.com/windows-taskkill-kill-process-by-pid-name-port-cmd/
@@ -213,5 +217,4 @@ Defining function before using/calling the function in shell scripts in this ord
 - https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-xp/bb490982(v=technet.10)?redirectedfrom=MSDN
 - https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/xcopy
 - https://duckduckgo.com/?q=xcopy+%2Fe+%2Fi+%2Ff+%2Fc+%2Fk+%2Fr+%2Fh+%2Fm+%2Fo+%2Fx+%2Fy&ia=web
-- https://duckduckgo.com/?q=ntfs+path+length+limit&ia=web
  
