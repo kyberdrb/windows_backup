@@ -1,6 +1,5 @@
 #!/bin/sh
 
-set -e
 #set -x
 
 SCRIPT_DIR="$(dirname "$(readlink --canonicalize "$0")")"
