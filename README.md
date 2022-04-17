@@ -209,6 +209,7 @@ https://github.com/shivansh/TCP-IP-Regression-TestSuite/commit/8f1fb4c4f5a96b160
 - https://www.systutorials.com/how-to-unexport-an-exported-variable-in-bash-on-linux/
 - https://stackoverflow.com/questions/17368067/length-of-string-in-bash/17368090#17368090
 - https://unix.stackexchange.com/questions/621327/xargs-use-input-as-command/621331#621331
+- https://duckduckgo.com/?q=task+scheduler+git+bash+environment+variables+HOME&ia=web
  
 Defining function before using/calling the function in shell scripts in this order seems to be important in shell scripts, to ensure safe and predictable execution, and avoid undefined behavior.
  
