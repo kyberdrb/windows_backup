@@ -220,4 +220,5 @@ Defining function before using/calling the function in shell scripts in this ord
 - https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-xp/bb490982(v=technet.10)?redirectedfrom=MSDN
 - https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/xcopy
 - https://duckduckgo.com/?q=xcopy+%2Fe+%2Fi+%2Ff+%2Fc+%2Fk+%2Fr+%2Fh+%2Fm+%2Fo+%2Fx+%2Fy&ia=web
+- https://www.minitool.com/news/open-file-explorer-from-cmd.html
  
